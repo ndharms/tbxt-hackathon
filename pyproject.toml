@@ -9,6 +9,7 @@ dependencies = [
     # data
     "pandas>=2.2.0",
     "openpyxl>=3.1.0",
+    "msoffcrypto-tool>=5.4.0",
     # ML
     "scikit-learn>=1.5.0",
     "xgboost>=2.1.0",

@@ -12,6 +12,7 @@ build/
 *.csv.gz
 *.sdf
 *.pdbqt
+.idea/
 !data/zenodo/tbxt_spr_merged.csv
 !data/processed/*.csv
 !data/Naar_SMILES.xlsx
