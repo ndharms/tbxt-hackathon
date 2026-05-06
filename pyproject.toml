@@ -1,0 +1,28 @@
+[project]
+name = "tbxt-hackathon"
+version = "0.1.0"
+description = "TBXT hit identification hackathon — ligand-based virtual screening with structure-based validation"
+requires-python = ">=3.11"
+dependencies = [
+    # cheminformatics
+    "rdkit>=2024.3.1",
+    # data
+    "pandas>=2.2.0",
+    "openpyxl>=3.1.0",
+    # ML
+    "scikit-learn>=1.5.0",
+    "xgboost>=2.1.0",
+    # notebooks
+    "jupyter>=1.0.0",
+    "ipykernel>=6.29.0",
+    # viz
+    "matplotlib>=3.9.0",
+    "seaborn>=0.13.0",
+    # utilities
+    "tqdm>=4.66.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.5.0",
+]
