@@ -1,0 +1,74 @@
+{
+  "min_tanimoto_threshold": 0.5,
+  "cliff_threshold_dpkd": 2.0,
+  "total_pairs": 15262,
+  "same_pocket": {
+    "n_pairs": 7463,
+    "median_abs_dpkd": 1.0702943481159388,
+    "mean_abs_dpkd": 1.8082231395311748,
+    "std_abs_dpkd": 1.7073970225870514,
+    "n_cliffs": 2759,
+    "cliff_fraction": 0.36969047300013397,
+    "median_tanimoto": 0.5692307949066162
+  },
+  "cross_pocket": {
+    "n_pairs": 59,
+    "median_abs_dpkd": 0.5501773766920306,
+    "mean_abs_dpkd": 1.4663482727276744,
+    "std_abs_dpkd": 1.830372629665581,
+    "n_cliffs": 16,
+    "cliff_fraction": 0.2711864406779661,
+    "median_tanimoto": 0.581818163394928
+  },
+  "unassigned": {
+    "n_pairs": 7740,
+    "median_abs_dpkd": 0.8014953738883921,
+    "mean_abs_dpkd": 1.4578413896288323,
+    "std_abs_dpkd": 1.5405689512839658,
+    "n_cliffs": 2086,
+    "cliff_fraction": 0.2695090439276486,
+    "median_tanimoto": 0.568965494632721
+  },
+  "same_pocket_tc_ge_0p7": {
+    "n_pairs": 940,
+    "median_abs_dpkd": 0.9955348140210976,
+    "n_cliffs": 332,
+    "cliff_fraction": 0.35319148936170214
+  },
+  "cross_pocket_tc_ge_0p7": {
+    "n_pairs": 19,
+    "median_abs_dpkd": 0.6809948489558006,
+    "n_cliffs": 7,
+    "cliff_fraction": 0.3684210526315789
+  },
+  "unassigned_tc_ge_0p7": {
+    "n_pairs": 1036,
+    "median_abs_dpkd": 0.7428746728608229,
+    "n_cliffs": 277,
+    "cliff_fraction": 0.2673745173745174
+  },
+  "pocket_A_pkd": {
+    "n": 479,
+    "mean": 3.030965027382174,
+    "median": 3.2434623142749057,
+    "std": 1.7593949651016842
+  },
+  "pocket_B_pkd": {
+    "n": 154,
+    "mean": 2.8139754391406817,
+    "median": 3.1335996124004604,
+    "std": 1.797683663610681
+  },
+  "pocket_C_pkd": {
+    "n": 35,
+    "mean": 3.358853876804246,
+    "median": 3.5177014521106,
+    "std": 1.4015974026799352
+  },
+  "pocket_D_pkd": {
+    "n": 18,
+    "mean": 3.0966941059224347,
+    "median": 2.994555052569255,
+    "std": 0.4495422139889434
+  }
+}

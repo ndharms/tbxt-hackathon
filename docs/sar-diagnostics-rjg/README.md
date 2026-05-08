@@ -324,6 +324,129 @@ never seen the late-batch measurement regime that dominates fold 4.
    pooled OOF (1,468 compounds, 5× more data and less batch-biased)
    is more honest.
 
+---
+
+## Addendum: pocket assignment vs. activity cliffs (May 8 2026)
+
+### Hypothesis
+
+The SAR diagnostics above show 30.9% of high-similarity pairs
+(Tanimoto >= 0.7) are activity cliffs (|dpKD| >= 2). One possible
+explanation: structurally similar compounds that bind *different pockets*
+on TBXT would naturally have different affinities. If so, pocket
+assignment could disambiguate apparent cliffs into biologically
+meaningful pocket-selectivity differences, recovering smoother
+within-pocket SAR.
+
+### Method
+
+Using the pocket-assigner (substructure + max ECFP4 Tanimoto to 45
+crystallographic fragments across Newman pockets A, B, C, D), we
+assigned all 1,599 Zenodo compounds to pockets and re-ran the activity
+cliff analysis stratified by same-pocket vs cross-pocket pairing.
+
+### Results: pocket assignment does NOT explain the cliffs
+
+**Pairs with Tanimoto >= 0.5 (n=15,262):**
+
+| Category | n_pairs | median |dpKD| | cliff rate (|dpKD|>=2) |
+|---|---:|---:|---:|
+| Same pocket | 7,463 | 1.07 | **37.0%** |
+| Cross pocket | 59 | 0.55 | 27.1% |
+| Unassigned (>=1 compound) | 7,740 | 0.80 | 27.0% |
+
+**Pairs with Tanimoto >= 0.7 (n=1,995):**
+
+| Category | n_pairs | median |dpKD| | cliff rate |
+|---|---:|---:|---:|
+| Same pocket | 940 | 1.00 | **35.3%** |
+| Cross pocket | 19 | 0.68 | 36.8% |
+| Unassigned | 1,036 | 0.74 | 26.7% |
+
+The counter-intuitive finding: **same-pocket pairs have a higher cliff
+rate and higher median |dpKD| than cross-pocket or unassigned pairs.**
+
+This means:
+1. Activity cliffs in this dataset are NOT caused by pocket confusion.
+2. The cliffs are genuinely within-pocket — structurally similar
+   molecules assigned to the same pocket still have wildly different
+   measured pKD values.
+3. This is consistent with the earlier diagnosis: the dominant source
+   of |dpKD| variance is batch effects and measurement noise, not
+   unmodeled pocket selectivity.
+
+The likely explanation for same-pocket pairs showing *worse* SAR: the
+pocket-assigned subset is enriched for compounds with fragment
+substructures (by definition), which happen to have been measured across
+multiple batches — introducing more batch-driven variance. Unassigned
+compounds may come from a narrower range of campaigns.
+
+![dpKD distributions by pocket pairing](pocket_cliff_dpkd_distributions.png)
+![Cliff rate comparison](pocket_cliff_rate_comparison.png)
+
+### Per-pocket pKD distributions
+
+| Pocket | n compounds | mean pKD | median pKD | std pKD |
+|---|---:|---:|---:|---:|
+| A | 479 | 3.03 | 3.24 | 1.76 |
+| B | 154 | 2.81 | 3.13 | 1.80 |
+| C | 35 | 3.36 | 3.52 | 1.40 |
+| D | 18 | 3.10 | 3.00 | 0.45 |
+| Unassigned | 913 | 3.13 | 3.25 | 1.67 |
+
+Pockets are not meaningfully separated in pKD. Pocket D (4 fragments,
+fewest compounds assigned) shows the narrowest distribution (std 0.45),
+which is more likely a small-n artifact than a real pocket effect.
+
+![Per-pocket pKD violins](pocket_pkd_violins.png)
+
+### Chemical space visualization
+
+Pocket assignments cluster in PaCMAP space, as expected (assignment is
+substructure/Tanimoto-based, which correlates with Morgan FP distance).
+There is no visible segregation of high-pKD compounds within pockets.
+
+![PaCMAP pocket vs pKD](pacmap_pocket_vs_pkd.png)
+![PaCMAP pocket assignments](pacmap_pocket_assignments.png)
+![Per-pocket detail](pacmap_per_pocket_detail.png)
+
+### XGBoost classification: pocket features do not help
+
+Added 8 pocket features (per-pocket max Tanimoto + substructure boolean
+for A, B, C, D) to the baseline XGBoost classifier (Morgan 2048 +
+physchem 8).
+
+| Model | n_features | OOF AUROC | Holdout AUROC |
+|---|---:|---:|---:|
+| Baseline (Morgan + physchem) | 2,056 | **0.632** | 0.463 |
+| + Pocket features | 2,064 | 0.601 | 0.492 |
+| Delta | +8 | **-0.031** | +0.029 |
+
+Adding pocket features *hurts* OOF AUROC by 0.031 while giving a
+negligible holdout improvement (both holdout numbers are below chance
+anyway, consistent with the batch-confounded holdout fold identified in
+diagnostic 5).
+
+**Interpretation:** pocket similarity is already fully captured by the
+Morgan fingerprints. The pocket features are redundant (they are
+deterministic functions of Morgan similarities to a fixed set of
+fragments). Adding them provides no new information but increases the
+feature space, slightly harming generalization through noise fitting.
+
+### Conclusions
+
+1. **Pocket assignment is orthogonal to the SAR noise problem.** The
+   cliffs come from batch effects, not unmodeled pocket selectivity.
+2. **Pocket features do not improve classification** on this dataset.
+   Morgan FP already encodes whatever pocket-relevant substructure
+   information exists.
+3. **The pocket-assigner remains useful for its intended purpose** —
+   filtering the onepot catalog into per-pocket candidate pools for
+   Boltz scoring — but it does not help predict binding affinity from
+   the Zenodo SPR data alone.
+
+---
+
 ## Reproduce
 
 ```bash
@@ -333,6 +456,9 @@ uv run python scripts/sar-diagnostics-rjg/02_sar_smoothness.py
 uv run python scripts/sar-diagnostics-rjg/03_embedding_probes.py --accelerator mps
 uv run python scripts/sar-diagnostics-rjg/04_pacmap_pkd_viz.py
 uv run python scripts/sar-diagnostics-rjg/05_batch_fold_interaction.py
+uv run python scripts/sar-diagnostics-rjg/06_pocket_cliff_analysis.py
+uv run python scripts/sar-diagnostics-rjg/07_pocket_pacmap_viz.py
+uv run python scripts/sar-diagnostics-rjg/08_xgb_with_pocket_features.py
 ```
 
 No model training, no GPU strictly required (embedding extraction in
@@ -353,7 +479,10 @@ data/sar-diagnostics-rjg/
 ├── probe_results.json                # per-probe OOF/HOL metrics + per-fold detail
 ├── fold_pkd_stats.csv                # per-fold mean/median/std pKD
 ├── batch_fold_composition.csv        # (batch, fold) -> n_compounds, median_pKD
-└── batch_fold_median_pkd.csv         # alias of above; retained for naming clarity
+├── batch_fold_median_pkd.csv         # alias of above; retained for naming clarity
+├── pocket_cliff_analysis.json        # pocket cliff stratification results
+├── pocket_assignments_zenodo.csv     # per-compound pocket assignments + scores
+└── xgb_pocket_comparison.json        # baseline vs +pocket XGBoost metrics
 
 docs/sar-diagnostics-rjg/
 ├── batch_within_compound_std.png     # diagnostic 1: replicate noise
@@ -365,5 +494,11 @@ docs/sar-diagnostics-rjg/
 ├── pacmap_colored_by_pkd.png         # diagnostic 4: chemical-space pKD viz
 ├── fold_pkd_distributions.png        # diagnostic 4: per-fold pKD violins
 ├── batch_fold_composition.png        # diagnostic 5: batch x fold counts
-└── batch_fold_median_pkd.png         # diagnostic 5: batch x fold pKD heatmap
+├── batch_fold_median_pkd.png         # diagnostic 5: batch x fold pKD heatmap
+├── pocket_cliff_dpkd_distributions.png  # addendum: |dpKD| histograms by pocket pairing
+├── pocket_cliff_rate_comparison.png     # addendum: cliff rate bar chart
+├── pocket_pkd_violins.png               # addendum: per-pocket pKD distributions
+├── pacmap_pocket_assignments.png        # addendum: PaCMAP colored by pocket
+├── pacmap_pocket_vs_pkd.png             # addendum: PaCMAP pocket vs pKD side-by-side
+└── pacmap_per_pocket_detail.png         # addendum: per-pocket PaCMAP detail
 ```
