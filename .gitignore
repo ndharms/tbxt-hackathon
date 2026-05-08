@@ -18,3 +18,4 @@ build/
 !data/Naar_SMILES.xlsx
 !data/folds-pacmap-kmeans6/*.csv
 !data/classification-models-try1-rjg/*.csv
+!data/regression-models-try1-rjg/*.csv

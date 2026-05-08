@@ -12,6 +12,10 @@ Writeups and reusable artifacts from the TBXT hit-identification work.
   — first-pass binder/non-binder classifier ensembles (CheMeleon transfer,
   XGBoost, ± validation folds), TukeyHSD comparison on the distinct
   holdout fold. rjg, 2026-05-08.
+- [`regression-models-try1-rjg/`](regression-models-try1-rjg/README.md)
+  — first-pass continuous pKD regression counterpart of the classifier
+  experiment. Same four ensemble variants, squared-error TukeyHSD, and
+  train-mean baseline. rjg, 2026-05-08.
 
 ## Adding a new experiment
 

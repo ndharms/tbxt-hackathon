@@ -230,3 +230,123 @@ def train_one_xgb_novalid(
         best_val_logloss=float("nan"),
         feature_importances=clf.feature_importances_.astype(np.float64),
     )
+
+
+# ---- regression variants -----------------------------------------------------
+
+
+@dataclass
+class XGBRegressionRunResult:
+    """Outputs from a single fold's XGBoost regression fit.
+
+    Attributes:
+        booster: trained XGBRegressor.
+        best_iteration: iteration chosen by early stopping (or n_estimators - 1).
+        best_val_rmse: validation RMSE at best_iteration (NaN if no val set).
+        feature_importances: gain-based importances aligned to X columns.
+    """
+
+    booster: xgb.XGBRegressor
+    best_iteration: int
+    best_val_rmse: float
+    feature_importances: np.ndarray = field(default_factory=lambda: np.zeros(0))
+
+
+@typechecked
+def train_one_xgb_regression(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_val: np.ndarray,
+    y_val: np.ndarray,
+    cfg: XGBConfig,
+) -> XGBRegressionRunResult:
+    """Fit one XGBoost regressor with val-based early stopping on RMSE.
+
+    Regression counterpart to :func:`train_one_xgb`. ``objective`` is
+    ``reg:squarederror``; class-imbalance weighting does not apply.
+    """
+    reg = xgb.XGBRegressor(
+        n_estimators=cfg.n_estimators,
+        max_depth=cfg.max_depth,
+        learning_rate=cfg.learning_rate,
+        subsample=cfg.subsample,
+        colsample_bytree=cfg.colsample_bytree,
+        reg_lambda=cfg.reg_lambda,
+        min_child_weight=cfg.min_child_weight,
+        objective="reg:squarederror",
+        eval_metric="rmse",
+        tree_method="hist",
+        random_state=cfg.random_state,
+        n_jobs=cfg.n_jobs,
+        early_stopping_rounds=cfg.early_stopping_rounds,
+    )
+    reg.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
+
+    best_iter = int(reg.best_iteration) if reg.best_iteration is not None else cfg.n_estimators - 1
+    results = reg.evals_result()
+    val_rmse_history = next(iter(results.values()))["rmse"]
+    best_rmse = float(val_rmse_history[best_iter])
+    logger.info(
+        f"xgb regression fit: best_iter={best_iter}/{cfg.n_estimators} "
+        f"val_rmse={best_rmse:.4f}",
+    )
+    return XGBRegressionRunResult(
+        booster=reg,
+        best_iteration=best_iter,
+        best_val_rmse=best_rmse,
+        feature_importances=reg.feature_importances_.astype(np.float64),
+    )
+
+
+@typechecked
+def train_one_xgb_regression_novalid(
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    cfg: XGBConfig,
+) -> XGBRegressionRunResult:
+    """Fit one XGBoost regressor for a fixed ``n_estimators`` with no val set."""
+    reg = xgb.XGBRegressor(
+        n_estimators=cfg.n_estimators,
+        max_depth=cfg.max_depth,
+        learning_rate=cfg.learning_rate,
+        subsample=cfg.subsample,
+        colsample_bytree=cfg.colsample_bytree,
+        reg_lambda=cfg.reg_lambda,
+        min_child_weight=cfg.min_child_weight,
+        objective="reg:squarederror",
+        eval_metric="rmse",
+        tree_method="hist",
+        random_state=cfg.random_state,
+        n_jobs=cfg.n_jobs,
+    )
+    reg.fit(X_train, y_train, verbose=False)
+    logger.info(f"xgb regression no-val fit: n_estimators={cfg.n_estimators}")
+    return XGBRegressionRunResult(
+        booster=reg,
+        best_iteration=cfg.n_estimators - 1,
+        best_val_rmse=float("nan"),
+        feature_importances=reg.feature_importances_.astype(np.float64),
+    )
+
+
+@typechecked
+def predict_xgb_regression(reg: xgb.XGBRegressor, X: np.ndarray) -> np.ndarray:
+    """Return predicted continuous targets (e.g. pKD)."""
+    return reg.predict(X)
+
+
+@typechecked
+def save_xgb_regression_model(reg: xgb.XGBRegressor, path: Path) -> None:
+    """Persist an XGBoost regressor to UBJSON (``.ubj``)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    reg.save_model(str(path))
+
+
+@typechecked
+def load_xgb_regression_model(path: Path) -> xgb.XGBRegressor:
+    """Rehydrate an XGBoost regressor from :func:`save_xgb_regression_model`."""
+    if not path.exists():
+        raise FileNotFoundError(f"xgb regression model not found: {path}")
+    reg = xgb.XGBRegressor()
+    reg.load_model(str(path))
+    return reg
