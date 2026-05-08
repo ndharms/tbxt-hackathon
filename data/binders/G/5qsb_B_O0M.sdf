@@ -1,0 +1,83 @@
+O0M
+  ModelServer 0.9.12
+
+ 17 18  0  0  0  0  0  0  0  0  0
+  -17.7880  -30.3860    0.6460 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -17.4890  -30.6040   -0.6990 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -16.7540  -29.6770   -1.4110 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -16.5450  -29.8110   -2.8850 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -14.9930  -31.6400   -2.9890 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -12.6890  -31.0300   -3.9860 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -16.2890  -28.5640   -0.7620 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -15.1440  -30.1890   -3.2100 N   0  0  0  0  0  0  0  0  0  0  0  0
+  -19.2570  -29.0080    2.8530 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -11.4790  -31.5310   -4.4270 O   0  0  0  0  0  0  0  0  0  0  0  0
+  -17.7510  -28.9150    2.6780 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -13.3680  -30.1360   -5.0130 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -14.8250  -29.8260   -4.6320 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -16.5810  -28.3520    0.5690 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -17.0500  -29.7720    3.6910 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -17.3480  -29.2420    1.2820 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -13.6590  -32.1370   -3.5640 C   0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  2  0  0  0  0
+  1 16  1  0  0  0  0
+  2  3  1  0  0  0  0
+  3  4  1  0  0  0  0
+  3  7  2  0  0  0  0
+  4  8  1  0  0  0  0
+  5 17  1  0  0  0  0
+  5  8  1  0  0  0  0
+  6 12  1  0  0  0  0
+  6 10  1  0  0  0  0
+  6 17  1  0  0  0  0
+  7 14  1  0  0  0  0
+  8 13  1  0  0  0  0
+  9 11  1  0  0  0  0
+ 11 16  1  0  0  0  0
+ 11 15  1  0  0  0  0
+ 12 13  1  0  0  0  0
+ 14 16  2  0  0  0  0
+M  END
+> <model_server_result.job_id>
+N7P7FfUDfSOH1ztj68EWdQ
+
+> <model_server_result.datetime_utc>
+2026-05-08 20:13:19
+
+> <model_server_result.server_version>
+0.9.12
+
+> <model_server_result.query_name>
+ligand
+
+> <model_server_result.source_id>
+pdb-bcif
+
+> <model_server_result.entry_id>
+5qsb
+
+> <model_server_params.name>
+atom_site
+
+> <model_server_params.value>
+{"label_asym_id":"B","auth_seq_id":301}
+
+> <model_server_stats.io_time_ms>
+30
+
+> <model_server_stats.parse_time_ms>
+10
+
+> <model_server_stats.create_model_time_ms>
+4
+
+> <model_server_stats.query_time_ms>
+395
+
+> <model_server_stats.encode_time_ms>
+0
+
+> <model_server_stats.element_count>
+17
+
+$$$$

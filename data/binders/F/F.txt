@@ -1,0 +1,3 @@
+O=C(O)c1ccccc1OC(F)(F)F	K2P
+Nc1cccc(OCc2ccccc2)c1	O1D
+O=C(O)COCc1ccccc1	O1J
