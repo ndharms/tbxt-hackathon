@@ -15,14 +15,18 @@ regression failure unsurprising and the classification result (AUROC
 0.60+ OOF) look like the upper bound of what any method can recover.
 
 1. **Batch effects dominate.** `reference_date` alone explains
-   **R² = 0.16** of pKD variance (no chemistry in the model).
+   **R² = 0.155** of pKD variance (no chemistry in the model).
    Median-pKD shifts across the 14 batches by **1.97 pKD units**
    (i.e. ~100-fold KD swing depending on which campaign measured a
-   compound).
+   compound). The early batches (2020–early 2021) also show much
+   narrower pKD distributions than later ones, suggesting an assay
+   protocol change mid-project (likely a switch from null-censoring
+   non-binders to reporting finite low-pKD values).
 2. **Replicate measurements disagree at the 100-fold level.** For the
-   72 compounds measured in >=2 batches, the **mean** within-compound
-   pKD std is **0.92** (30% of compounds have replicate-std >= 1.0;
-   10% have std >= 3.2 — a 1600-fold range on the *same molecule*).
+   65 compounds measured in >=2 batches (with non-null pKD in each),
+   the **mean** within-compound pKD std is **0.92** (23 % of
+   compounds have replicate-std >= 1.0; 12 % have std >= 3.0 — a
+   1000-fold range on the *same molecule*).
 3. **SAR is flat.** On 1.28 M pairs, Spearman rho[Tanimoto, |ΔpKD|] =
    **−0.008**. Median |ΔpKD| in the highest-similarity bin (Tanimoto
    0.95–1.0) is **1.03 pKD**, indistinguishable from the global median
@@ -44,13 +48,17 @@ regression failure unsurprising and the classification result (AUROC
 
 Source: the full 2,153-record SPR table
 (`data/zenodo/tbxt_spr_merged.csv`) preserves every individual
-measurement with a `reference_date` batch identifier.
+measurement with a `reference_date` batch identifier. Of those, **240
+records (11 %) have null pKD** — SPR runs where KD could not be
+determined (weak/no binding, noisy signal, etc.). These are
+concentrated in the first few batches and are dropped from the analyses
+below. Clean n = 1,913 records across 1,680 unique compounds.
 
 ### Within-compound replicate variability
 
-For the 72 compounds measured more than once (always across different
-batches), we have the distribution of replicate std within each
-compound:
+For the 65 compounds measured more than once (always across different
+batches) with non-null pKD in each measurement, we have the
+distribution of replicate std within each compound:
 
 | statistic | value (pKD units) |
 |---|---:|
@@ -74,19 +82,27 @@ in KD.
 
 14 batches. Median pKD per batch ranges from about 2.6 to 4.5
 (spread **1.97 pKD units**). Batch-only one-way ANOVA gives
-**R² = 0.162** — batch membership explains 16 % of pKD variance
+**R² = 0.155** — batch membership explains ~15 % of pKD variance
 without touching chemistry.
 
 ![Per-batch pKD violins](batch_pkd_per_batch.png)
 
 Some batches (e.g. 20230103) produce systematically higher pKD than
-others (e.g. 20201028). The merged `pKD_global_mean` column we train
-on is a linear combination of chemistry and batch, in unknown
-proportions per compound.
+others (e.g. 20201028). Even more striking is the **change in
+distribution shape over time**: the first 5 batches (20200928–20210312)
+have narrow pKD distributions clustered around 3, while batches from
+20210423 onward have dramatically wider distributions extending down to
+pKD ≈ −2. Almost certainly an assay protocol update mid-project: early
+batches probably null-censored non-binders (which we see as the 240
+dropped records, mostly from early dates), while later batches began
+reporting finite low-pKD values for the non-binding tail. The merged
+`pKD_global_mean` column we train on is a linear combination of
+chemistry, measurement batch, and protocol era — in unknown proportions
+per compound.
 
-**Upshot**: 16 % of the target is pure batch noise. The theoretical
-R² ceiling for any chemistry-only model is ~0.84, and in practice
-much lower because of within-compound noise on top.
+**Upshot**: ~15 % of the target is pure batch/protocol noise. The
+theoretical R² ceiling for any chemistry-only model is ~0.85, and in
+practice much lower because of within-compound noise on top.
 
 ## Diagnostic 2: SAR smoothness
 
@@ -261,7 +277,7 @@ never seen the late-batch measurement regime that dominates fold 4.
 ## What this means for the hackathon
 
 1. **Regression is not recoverable** on this data with any architecture.
-   The combination of (a) 16 % batch variance, (b) 30 % activity-cliff
+   The combination of (a) 15 % batch variance, (b) 30 % activity-cliff
    pair rate at Tanimoto >= 0.7, and (c) kNN pKD std = 67 % of global
    std puts a hard ceiling on regression performance well below the
    constant-predictor baseline.
@@ -278,7 +294,7 @@ never seen the late-batch measurement regime that dominates fold 4.
    the ceiling-lifting moves are all on the data side, not the
    architecture side:
    - Add `reference_date` as a feature (bias term per batch) to
-     explicitly split batch from chemistry. Explain away 16 % of
+     explicitly split batch from chemistry. Explain away 15 % of
      variance for free.
    - Filter to the 25 compounds with >= 3 replicate measurements,
      use only the most-recent or most-consistent replicate.
@@ -312,7 +328,7 @@ on an M-series laptop is ~1 minute including embedding extraction.
 
 ```
 data/sar-diagnostics-rjg/
-├── batch_stats_per_compound.csv      # per-compound replicate stats (n=1911)
+├── batch_stats_per_compound.csv      # per-compound replicate stats (n=1680 post null-drop)
 ├── batch_stats_per_batch.csv         # per-batch aggregates (n=14)
 ├── batch_consistency_summary.json    # ANOVA R2, within-compound std summary
 ├── sar_knn_pkd_std.csv               # per-compound kNN-5 std in Morgan space

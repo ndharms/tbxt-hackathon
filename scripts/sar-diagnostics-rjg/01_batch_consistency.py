@@ -43,9 +43,17 @@ def main() -> None:
     ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
     DOC_FIG_DIR.mkdir(parents=True, exist_ok=True)
 
-    raw = pl.read_csv(SPR_CSV)
-    logger.info(f"loaded SPR records: {raw.shape}")
-    assert {"compound_id", "reference_date", "pKD"}.issubset(raw.columns)
+    raw_all = pl.read_csv(SPR_CSV)
+    logger.info(f"loaded SPR records (raw): {raw_all.shape}")
+    assert {"compound_id", "reference_date", "pKD"}.issubset(raw_all.columns)
+
+    # Drop records with null pKD (240 of 2153 records in the current dataset have
+    # no determinable KD — weak/no binding, noisy signal, etc.). Polars null
+    # propagation silently poisons matplotlib's KDE-based violinplot and biases
+    # ANOVA n-counts, so we drop them up-front and work with the clean table.
+    n_null = int(raw_all["pKD"].is_null().sum())
+    raw = raw_all.drop_nulls("pKD")
+    logger.info(f"dropped {n_null} null-pKD records; working with {raw.shape[0]} rows")
 
     # ---- 1. Within-compound consistency ------------------------------------
     per_compound = (
@@ -169,7 +177,9 @@ def main() -> None:
 
     # ---- summary JSON ------------------------------------------------------
     summary = {
-        "n_records": int(raw.shape[0]),
+        "n_records_raw": int(raw_all.shape[0]),
+        "n_records_null_pKD_dropped": n_null,
+        "n_records_clean": int(raw.shape[0]),
         "n_compounds": int(raw["compound_id"].n_unique()),
         "n_batches": int(raw["reference_date"].n_unique()),
         "n_compounds_multi_measurement": int(multi.shape[0]),
