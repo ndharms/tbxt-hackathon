@@ -12,12 +12,15 @@ predicted binding pocket, ranking rationale, key computed evidence, and physchem
 ### COMPLETED
 - **SAR diagnostics**: Zenodo SPR dataset unsuitable for regression (batch explains 15% variance, 30% activity cliffs at Tanimoto ≥0.7, kNN pKD std = 67% global)
 - **Classification model**: Zenodo binder/non-binder classifier achieves OOF AUROC 0.65 (ceiling for this data)
-- **Pocket mapping**: Four TBXT binding sites mapped to Newman pockets:
-  - A site = pocket A' (most validated, 22 fragments, good Boltz pose)
-  - D site = pocket B (dropped: bad Boltz pose)
-  - F site = pocket D (4 fragments, Y88/D177, P300/KDM6 interface, induced pocket)
-  - G site = pocket C (10 fragments, crystallographic 2-fold, truncated construct)
-- **Fragment catalog**: 29 fragment binders extracted from TEP PDF with per-pocket assignments
+- **Pocket mapping**: Four TBXT binding sites mapped to Newman pockets (now using Newman labels directly):
+  - Pocket A/A' (most validated, 26 fragments, good Boltz pose) — 2 submission slots
+  - Pocket B (dropped: bad Boltz pose, 5 fragments)
+  - Pocket C (10 fragments, E48/R54, crystallographic 2-fold) — 1 submission slot
+  - Pocket D (4 fragments, Y88/D177, P300/KDM6 interface, induced pocket) — 1 speculative slot
+- **Fragment catalog**: 45 fragment binders extracted from TEP + RCSB with per-pocket assignments (A=26, B=5, C=10, D=4)
+- **Pocket-assigner built**: substructure match + max ECFP4 Tanimoto scorer across all 4 pockets (`src/tbxt_hackathon/pocket_assigner.py`)
+- **Pocket vs. SAR analysis**: pocket assignment does NOT explain activity cliffs (same-pocket cliff rate 37% > cross-pocket 27%); pocket features do not improve XGBoost classification (OOF AUROC -0.031). Confirms cliffs are batch-noise-driven.
+- **Unresolved TEP pockets mapped**: TEP pockets B/D/E/CHECK resolved via PDB residue contacts (see `brachyury-site-summary.md`)
 
 ### REVISED STRATEGY
 **Original plan**: ligand-based VL → multi-model ML → Boltz → Vina → final 4
@@ -25,11 +28,11 @@ predicted binding pocket, ranking rationale, key computed evidence, and physchem
 **New plan** (due to SAR diagnostics showing Zenodo regression ceiling):
 - **Abandon Zenodo as regression target**, use only as soft prior (binder/non-binder AUROC 0.65)
 - **Per-pocket active learning approach**:
-  - Build separate Boltz surrogates for A and G sites (reliable Boltz poses)
-  - Manual Boltz for F site (induced pocket, ~20 compounds only)
-  - Drop B site (bad Boltz pose)
-- **Fragment-based pocket assignment**: 29 TEP fragments as pocket-similarity scorer (independent of Boltz)
-- **Slot allocation**: 2× A site (most validated), 1× G site, 1× F site (speculative, novel MoA)
+  - Build separate Boltz surrogates for pockets A and C (reliable Boltz poses)
+  - Manual Boltz for pocket D (induced pocket, ~20 compounds only)
+  - Drop pocket B (bad Boltz pose)
+- **Fragment-based pocket assignment**: 45 TEP fragments as pocket-similarity scorer (independent of Boltz)
+- **Slot allocation**: 2× pocket A (most validated), 1× pocket C, 1× pocket D (speculative, novel MoA)
 
 ---
 
@@ -62,7 +65,7 @@ After comprehensive SAR diagnostics (`docs/sar-diagnostics-rjg/README.md`), we'v
 
 **Inputs:**
 - onepot 3.4B CORE catalog (pre-filtered to fragment-containing compounds)
-- 29 TEP fragment SMILES with pocket assignments (A/A', B, F=Newman D, G=Newman C)
+- 45 TEP fragment SMILES with pocket assignments (A=26, B=5 dropped, C=10, D=4)
 
 **Outputs:**
 - Per-pocket compound pools filtered by:
@@ -72,16 +75,16 @@ After comprehensive SAR diagnostics (`docs/sar-diagnostics-rjg/README.md`), we'v
   - Naar deduplication (Tanimoto < 0.6)
 - Zenodo binder classifier applied as soft prior (AUROC 0.65)
 
-### Step 2: Per-pocket active learning with Boltz oracle (A and G sites only)
+### Step 2: Per-pocket active learning with Boltz oracle (pockets A and C only)
 **Owner:** Ray  
 **Budget:** ~1000 Boltz predictions per pocket (~2000 total, ~50 GPU-hours)
 
-**A site (pocket A') — 2 submission slots:**
-- Most validated site (22 fragments, known thiazole binders 14–20 µM)
+**Pocket A — 2 submission slots:**
+- Most validated site (26 fragments, known thiazole binders 14–20 µM)
 - Boltz pose reliable (R180 anchor contact)
 - Prefer thiazole-acetamide/morpholino-thiazole chemotypes (5QS9/5QSD/7ZK2/8A7N)
 
-**G site (pocket C) — 1 submission slot:**
+**Pocket C — 1 submission slot:**
 - 10 fragments, crystallographic 2-fold symmetry
 - Boltz pose medium reliability (E48/E50/R54 polar contacts)
 - Prefer polar/basic head groups for E48/E50/R54 interactions
@@ -93,9 +96,9 @@ After comprehensive SAR diagnostics (`docs/sar-diagnostics-rjg/README.md`), we'v
 4. **Validate surrogate**: Spearman >0.6 on holdout (if fails, use Boltz predictions directly)
 5. **Score full catalog**: apply surrogate to full filtered catalog (~10K compounds per pocket)
 6. **Re-Boltz top candidates**: re-predict top ~200 per pocket with Boltz for final validation
-7. **Pose QC**: filter by anchor residue contacts (R180 for A, E48/R54 for G)
+7. **Pose QC**: filter by anchor residue contacts (R180 for A, E48/R54 for C)
 
-### Step 3: F site manual Boltz (pocket D, induced) — 1 submission slot
+### Step 3: Pocket D manual Boltz (induced pocket) — 1 submission slot
 **Owner:** Ray  
 **Budget:** ~20 Boltz predictions (no surrogate, speculative)
 
@@ -106,7 +109,7 @@ After comprehensive SAR diagnostics (`docs/sar-diagnostics-rjg/README.md`), we'v
 - MW < 400 preferred (small molecule for buried cavity)
 
 **Process:**
-1. Rank full F-site catalog (~10K) by max ECFP4 Tanimoto to 4 pocket-D fragments
+1. Rank full pocket-D catalog (~10K) by max ECFP4 Tanimoto to 4 pocket-D fragments
 2. Select top ~20 by fragment similarity + diversity + MW < 400
 3. Boltz predict all ~20
 4. Pose QC: Y88 contact, cavity burial check
@@ -114,21 +117,21 @@ After comprehensive SAR diagnostics (`docs/sar-diagnostics-rjg/README.md`), we'v
 
 ### Step 4: Secondary docking validation (Vina)
 **Owner:** Nate  
-**Candidates:** Top ~50 compounds across A/G/F (post-Boltz QC)
+**Candidates:** Top ~50 compounds across pockets A/C/D (post-Boltz QC)
 
 **Process:**
 - AutoDock Vina on PDB 6F59 (DNA-stripped)
-- Per-site search boxes (A: R180 region, G: E48/R54 region, F: Y88/D177 region)
+- Per-pocket search boxes (A: R180 region, C: E48/R54 region, D: Y88/D177 region)
 - Vina score + RMSD vs Boltz pose
 - Newman fragment retrodocking as pose validation
 
 ### Step 5: Final selection (4 compounds)
 **Criteria:**
-1. **Site diversity**: 2× A site, 1× G site, 1× F site
+1. **Pocket diversity**: 2× pocket A, 1× pocket C, 1× pocket D
 2. **Scaffold diversity**: 4 distinct Bemis–Murcko scaffolds
-3. **Boltz evidence**: A/G ΔG better than Newman thiazole series (−7 to −8 kcal/mol), F ΔG used for pose only
-4. **Pose QC**: anchor contacts (R180, E48/R54, Y88), Newman retrodock agreement
-5. **Vina confirmation**: score within 1 kcal/mol of best per-site
+3. **Boltz evidence**: A/C ΔG better than Newman thiazole series (−7 to −8 kcal/mol), D ΔG used for pose only
+4. **Pose QC**: anchor contacts (R180 for A, E48/R54 for C, Y88 for D), Newman retrodock agreement
+5. **Vina confirmation**: score within 1 kcal/mol of best per-pocket (A/C minimum)
 6. **Zenodo classifier**: prefer p_active > 0.5 (weak prior, AUROC 0.65)
 7. **Fragment similarity**: max Tanimoto to pocket fragments ≥ 0.35
 
@@ -140,32 +143,34 @@ After comprehensive SAR diagnostics (`docs/sar-diagnostics-rjg/README.md`), we'v
 - **Batch effects**: date alone explains R²=0.155 of pKD variance
 - **Replicate noise**: mean std = 0.92 pKD (100-fold KD range), median |ΔpKD| = 1.03 for Tanimoto 0.95–1.0
 - **Activity cliffs**: 30% of near-identical pairs (Tanimoto ≥ 0.7) diverge >1 pKD unit
+- **Pocket assignment does NOT explain cliffs**: same-pocket pairs have 37% cliff rate vs 27% cross-pocket. Cliffs are batch-noise-driven, not pocket confusion.
+- **Pocket features do not improve classification**: XGBoost +pocket features OOF AUROC drops 0.632→0.601
 - **Model ceiling**: CheMeleon embedding + Ridge probe underperforms train-mean baseline
 - **Classification AUROC**: 0.655 (chemeleon_no_val model, OOF)
 - **Conclusion**: use as soft prior only, not regression target
 
 ### Newman pocket fragment counts (from `brachyury-site-summary.md`)
-- A/A' (~22 fragments): most validated, thiazole series 14–20 µM SPR
-- B (5 fragments): dropped (bad Boltz pose, tilted)
-- D/F (4 fragments): induced pocket, Y88/D177, P300/KDM6 interface, buried
-- C/G (10 fragments): crystallographic 2-fold, E48/E50/R54 polar head
+- Pocket A (26 fragments): most validated, thiazole series 14–20 µM SPR
+- Pocket B (5 fragments): dropped (bad Boltz pose, tilted)
+- Pocket D (4 fragments): induced pocket, Y88/D177, P300/KDM6 interface, buried
+- Pocket C (10 fragments): crystallographic 2-fold, E48/E50/R54 polar head
 - Cd-mediated artifacts: exclude from similarity calculations
 
-### Boltz oracle reliability per site (from `brachyury-site-summary.md`)
-- **A (high)**: good pose, R180 anchor, known binders validate
-- **B (low)**: tilted pose vs crystallographic, DROP THIS SITE
-- **F (medium)**: induced pocket, over-estimates affinity, pose geometry still useful
-- **G (medium)**: truncated construct in PDB, 2-fold symmetry, E48/R54 contacts
+### Boltz oracle reliability per pocket (from `brachyury-site-summary.md`)
+- **Pocket A (high)**: good pose, R180 anchor, known binders validate
+- **Pocket B (low)**: tilted pose vs crystallographic, DROP
+- **Pocket D (medium)**: induced pocket, over-estimates affinity, pose geometry still useful
+- **Pocket C (medium)**: truncated construct in PDB, 2-fold symmetry, E48/R54 contacts
 
 ### Known binder SPR benchmarks
-- Newman thiazole series: 14–20 µM (A/A' pocket, 5QS9/5QSD/7ZK2/8A7N)
+- Newman thiazole series: 14–20 µM (pocket A, 5QS9/5QSD/7ZK2/8A7N)
 - TEP progressed compound: 80–104 µM on full-length G177D
-- Naar compounds: Z979336988, Z795991852, D203-0031 (sites F or F/G)
+- Naar compounds: Z979336988, Z795991852, D203-0031 (pockets D or C/D)
 
-### Per-site chemistry filters
-- **A site**: prefer thiazole-acetamide/morpholino-thiazole, avoid >2 fused benzene rings
-- **G site**: prefer polar/basic head for E48/E50/R54, HBD ≥ 2, avoid lipophilic cores
-- **F site**: MW < 400 (buried cavity), avoid long alkyl chains, prefer compact aromatics
+### Per-pocket chemistry filters
+- **Pocket A**: prefer thiazole-acetamide/morpholino-thiazole, avoid >2 fused benzene rings
+- **Pocket C**: prefer polar/basic head for E48/E50/R54, HBD ≥ 2, avoid lipophilic cores
+- **Pocket D**: MW < 400 (buried cavity), avoid long alkyl chains, prefer compact aromatics
 
 ---
 
@@ -173,12 +178,12 @@ After comprehensive SAR diagnostics (`docs/sar-diagnostics-rjg/README.md`), we'v
 
 | Time | Nate | Ray |
 |------|------|-----|
-| Hour 0:00–1:00 | Prepare Vina receptor (6F59 DNA-stripped, per-site boxes) | Launch A-site Boltz batch (~1000 compounds) |
-| Hour 1:00–2:00 | Monitor A-site Boltz, prepare pose QC scripts | Train A-site CheMeleon+MLP surrogate |
-| Hour 2:00–3:00 | Score A-site catalog with surrogate, select top 200 | Launch G-site Boltz batch (~1000 compounds) |
-| Hour 3:00–4:00 | Re-Boltz A-site top 200, pose QC, Vina validation | Train G-site surrogate, F-site manual Boltz (~20) |
-| Hour 4:00–5:00 | Re-Boltz G-site top 200, pose QC, Vina validation | Pose QC all survivors, Newman retrodocking |
-| Hour 5:00–5:45 | Final selection (2× A, 1× G, 1× F), scaffold/site diversity check | Rationale writeup, evidence tables |
+| Hour 0:00–1:00 | Prepare Vina receptor (6F59 DNA-stripped, per-pocket boxes) | Launch pocket-A Boltz batch (~1000 compounds) |
+| Hour 1:00–2:00 | Monitor pocket-A Boltz, prepare pose QC scripts | Train pocket-A CheMeleon+MLP surrogate |
+| Hour 2:00–3:00 | Score pocket-A catalog with surrogate, select top 200 | Launch pocket-C Boltz batch (~1000 compounds) |
+| Hour 3:00–4:00 | Re-Boltz pocket-A top 200, pose QC, Vina validation | Train pocket-C surrogate, pocket-D manual Boltz (~20) |
+| Hour 4:00–5:00 | Re-Boltz pocket-C top 200, pose QC, Vina validation | Pose QC all survivors, Newman retrodocking |
+| Hour 5:00–5:45 | Final selection (2× A, 1× C, 1× D), scaffold/pocket diversity check | Rationale writeup, evidence tables |
 | Hour 5:45–6:00 | Pre-submission checklist, submit | Archive outputs, commit to git |
 
 ---
@@ -186,10 +191,11 @@ After comprehensive SAR diagnostics (`docs/sar-diagnostics-rjg/README.md`), we'v
 ## 5. Budget and feasibility
 
 ### Boltz predictions
-- A site: ~1000 initial + 200 re-Boltz = 1200 predictions
-- G site: ~1000 initial + 200 re-Boltz = 1200 predictions  
-- F site: ~20 predictions
-- **Total: ~2420 predictions at ~2 min each on A100 = ~80 GPU-hours** (feasible with 2× A100 for 6 hours = 12 GPU-hours available? **CHECK THIS ASSUMPTION**)
+- Pocket A: ~1000 initial + 200 re-Boltz = 1200 predictions
+- Pocket C: ~1000 initial + 200 re-Boltz = 1200 predictions  
+- Pocket D: ~20 predictions
+- **Total: ~2420 predictions via Boltz Lab cloud (app.boltz.bio)**
+- No documented rate limit on Boltz Lab's hosted platform (confirmed May 8 2026). The only known rate limit issue (GitHub #211) was on the ColabFold MSA server for self-hosted Boltz, not the cloud API.
 
 ### Surrogate model viability
 - CheMeleon (pretrained) + MLP on ~1000 Boltz ΔG predictions per pocket
@@ -219,9 +225,9 @@ After comprehensive SAR diagnostics (`docs/sar-diagnostics-rjg/README.md`), we'v
 - [ ] No PAINS hits (RDKit FilterCatalog)
 - [ ] All 4 present in onepot CORE (verify by ID)
 - [ ] 4 distinct Bemis–Murcko scaffolds
-- [ ] Site distribution: 2× A, 1× G, 1× F
+- [ ] Pocket distribution: 2× A, 1× C, 1× D
 - [ ] Boltz pose QC passed (anchor contacts present)
-- [ ] Vina score within 1 kcal/mol of best per-site (A/G sites minimum)
+- [ ] Vina score within 1 kcal/mol of best per-pocket (A/C minimum)
 - [ ] Max Tanimoto to Naar < 0.6 (no prior-art duplication)
 
 ---
@@ -230,16 +236,17 @@ After comprehensive SAR diagnostics (`docs/sar-diagnostics-rjg/README.md`), we'v
 
 ### Decisions
 1. **Drop Zenodo regression**: use as soft binder/non-binder prior only (AUROC 0.65)
-2. **Drop B site**: bad Boltz pose, not worth budget
-3. **Per-pocket surrogates**: separate CheMeleon+MLP for A and G (distinct chemistry/pharmacophores)
-4. **F site speculative**: 1 slot for novel MoA, fragment similarity only (no surrogate)
-5. **Slot allocation**: 2× A (most validated), 1× G (10 fragments), 1× F (speculative)
+2. **Drop pocket B**: bad Boltz pose, not worth budget
+3. **Per-pocket surrogates**: separate CheMeleon+MLP for A and C (distinct chemistry/pharmacophores)
+4. **Pocket D speculative**: 1 slot for novel MoA, fragment similarity only (no surrogate)
+5. **Slot allocation**: 2× pocket A (most validated), 1× pocket C (10 fragments), 1× pocket D (speculative)
+6. **Pocket assignment does not improve ML**: confirmed via XGBoost ablation (OOF AUROC -0.031). Use pocket-assigner for catalog filtering only, not as model feature.
 
 ### Assumptions to validate
 1. **Boltz budget**: 80 GPU-hours feasible? (need 2× A100 for 6 hours or equivalent)
 2. **Surrogate Spearman >0.6**: achievable with ~1000 training points per pocket?
 3. **onepot catalog delivery**: pre-filtered to fragment substructures, ~10K per pocket?
-4. **Newman fragment SMILES**: already extracted and pocket-assigned?
+4. ~~**Newman fragment SMILES**: already extracted and pocket-assigned?~~ DONE: 45 fragments across 4 pockets in `data/structures/sgc_fragments.csv`
 
 ---
 
