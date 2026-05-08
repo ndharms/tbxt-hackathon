@@ -21,6 +21,8 @@ dependencies = [
     "seaborn>=0.13.0",
     # utilities
     "tqdm>=4.66.0",
+    "duckdb",
+    "pyarrow",
 ]
 
 [dependency-groups]
