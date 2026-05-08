@@ -4,11 +4,57 @@ Source of truth: Newman et al., *Nat Commun* 16:1596 (2025) — "Structural insi
 
 The Newman paper defines **five pockets**: A, A', B, C, D. Verified by superposing all four PDBs on 5QS2 Cα and computing contact distances to Newman's signature residues.
 
-## Verified mapping: our site labels → Newman pocket labels
+## Current working labels
 
-All four sites are genuinely distinct (ligand centroids 16–40 Å apart after Cα alignment).
+**We now use Newman pocket labels directly** (A, C, D) as our working nomenclature. The old "TEP site" labels (A site, D site, F site, G site) are retired.
 
-| Our label | PDB | Ligand | Newman pocket | Evidence (closest approach, Å) |
+| Working label | Newman pocket | Key residues | Fragments | Submission slots | Status |
+|---|---|---|---|---|---|
+| **A** | A / A' | R180, V123, L91, I125, V173, I182 | 26 | 2 | Active |
+| **C** | C | R54, E48, E50, L51, K76 | 10 | 1 | Active |
+| **D** | D | Y88, D177, V173, I182, M181, T183 | 4 | 1 (speculative) | Active |
+| ~~B~~ | B | G112, H100, G113, P115, P111, K114 | — | 0 | DROPPED (bad Boltz pose) |
+
+## Historical label mapping
+
+For traceability, here is the full mapping between all three naming systems used in this project:
+
+| TEP report pocket | Old "site" label | Newman pocket | Representative PDB | Resolution |
+|---|---|---|---|---|
+| Pocket A (crystal form 1) | A site | **A** | 5QRF–5QS5 (17 entries) | Used in model |
+| Pocket A' (crystal form 2) | A site | **A** | 5QS9, 5QSD, 7ZK2, 8A7N | Used in model |
+| Pocket B (crystal form 1) | — (unresolved, see below) | **B** (partial) | 5QSL, 5QRU, 5QRW loc1, 5QS1 | DROPPED |
+| Pocket C (crystal form 1) | — (unresolved) | unknown | 5QRW loc2 | DROPPED |
+| Pocket D (crystal form 1) | D site | **B** | 5QS0 | DROPPED |
+| Pocket E (crystal form 1) | — (unresolved) | **A** (edge) | 5QRR | Added to A |
+| Pocket F (crystal form 2) | F site | **D** | 5QSA, 5QSC loc2, 5QSI, 5QSK | Used in model |
+| Pocket G (crystal form 2) | G site | **C** | 5QS6, 5QS8, 5QSB–5QSJ, 5QT0 | Used in model |
+| Crystal contact | — | none | 5QRM | DROPPED (artifact) |
+| Pocket CHECK | — | none | 5QS7 | DROPPED (N-terminal surface) |
+
+## Unresolved pocket resolution (automated, May 8 2026)
+
+Used `scripts/resolve_pocket_mappings.py` to download PDBs and compute ligand–residue contacts within 5.0 Å, then scored against Newman pocket signature residues:
+
+| PDB | TEP label | Top contacts | Newman match | Disposition |
+|---|---|---|---|---|
+| 5QSL | B | A119, N161, M159, P117, Q118, S121, P120, L160, Y166, E116 | B (14%, E116 only) | DROPPED — loop 117–121 region, adjacent to but not core Newman B |
+| 5QRU | B | A119, N161, M159, Q118, P117, L160, S121, P120, Y166, E116 | B (14%, E116 only) | DROPPED — same region as 5QSL |
+| 5QRW loc1 | B | P120, A119, C122, M159, N161, S121, Y166, L160 | None (0%) | DROPPED — no signature match |
+| 5QRW loc2 | C | T196, V195, L163, Q199, S162, A197, R101, A194, W109 | None (0%) | DROPPED — C-terminal surface |
+| 5QS1 | B | A119, P117, N161, M159, Q118, L160, S121, P120, Y166, E116 | B (14%, E116 only) | DROPPED — same region as 5QSL |
+| 5QS0 | D | G112, G113, H100, P111, P115, K114 | **B (86%)** | Confirmed Newman B → DROPPED |
+| 5QRR | E | V123, I125, C122, S121, P120 | **A (29%)** — V123, I125 | Added to pocket A (edge overlap) |
+| 5QS7 | CHECK | L46, R43, S49, G45, V44, E189 | None (0%) | DROPPED — N-terminal surface, not a druggable pocket |
+| 5QRM | crystal contact | T204, Q199, E201, Y198, N200, Y104 | None (0%) | DROPPED — C-terminal surface artifact |
+
+**Notes on the TEP "Pocket B" cluster (5QSL, 5QRU, 5QRW loc1, 5QS1):** These all bind in the loop 117–121 / M159 / N161 region. E116 is the only Newman B signature residue contacted, and only marginally (4–5 Å). This is physically adjacent to Newman pocket B (5QS0 hits the same loop from a different angle, engaging G112/H100/P111/P115/K114 directly) but does not hit the core B signature. It may represent a sub-pocket or extension of B. Regardless, pocket B is dropped due to bad Boltz pose reliability.
+
+## Verified mapping (original analysis)
+
+All four originally-analyzed sites are genuinely distinct (ligand centroids 16–40 Å apart after Cα alignment).
+
+| Old label | PDB | Ligand | Newman pocket | Evidence (closest approach, Å) |
 |---|---|---|---|---|
 | **A site** | 5QS2 | LV4 | **Pocket A'** | R180: 2.64, V123: 3.86, L91: 4.04, I125: 4.19, V173: 5.95, I182: 6.67. Matches Newman's A' pharmacophore exactly. S89 is 7.8 Å (close but not the anchor — pockets A and A' are on the same β-sheet face). |
 | **D site** | 5QS0 | NZ4 | **Pocket B** | Direct ligand contacts to G112/H100/G113/P115/P111/K114 loop; E116 at 7.96 Å (Newman: "loop 116–120, M159, E116"). This is the only site within reach of strand *e'* residue E116. |
