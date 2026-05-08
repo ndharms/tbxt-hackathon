@@ -1,0 +1,74 @@
+O0G
+  ModelServer 0.9.12
+
+ 13 13  0  0  1  0  0  0  0  0  0
+  -17.3190  -29.8320    0.5270 N   0  0  0  0  0  0  0  0  0  0  0  0
+  -17.1850  -30.2090   -0.6420 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -16.5890  -29.4730   -1.5600 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -16.0320  -28.4120   -1.2850 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -16.0790  -27.9190   -0.0380 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -17.0350  -28.2280    2.0850 N   0  0  0  0  0  0  0  0  0  0  0  0
+  -17.0570  -30.1570    3.2160 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -19.2140  -27.2600    3.9100 O   0  0  0  0  0  0  0  0  0  0  0  0
+  -17.8780  -29.0480    2.9520 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -18.2990  -28.3080    4.2100 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -16.7980  -28.6480    0.9150 C   0  0  0  0  0  0  0  0  0  0  0  0
+  -15.5510  -26.9290    0.1520 F   0  0  0  0  0  0  0  0  0  0  0  0
+  -16.8190  -29.9220   -3.0940 CL  0  0  0  0  0  0  0  0  0  0  0  0
+  1  2  2  0  0  0  0
+  1 11  1  0  0  0  0
+  2  3  1  0  0  0  0
+  3 13  1  0  0  0  0
+  3  4  2  0  0  0  0
+  4  5  1  0  0  0  0
+  5 12  1  0  0  0  0
+  5 11  2  0  0  0  0
+  6 11  1  0  0  0  0
+  6  9  1  0  0  0  0
+  7  9  1  0  0  0  0
+  8 10  1  0  0  0  0
+  9 10  1  0  0  0  0
+M  END
+> <model_server_result.job_id>
+PdCxXgatAkQpjnANUQWlaw
+
+> <model_server_result.datetime_utc>
+2026-05-08 20:13:00
+
+> <model_server_result.server_version>
+0.9.12
+
+> <model_server_result.query_name>
+ligand
+
+> <model_server_result.source_id>
+pdb-bcif
+
+> <model_server_result.entry_id>
+5qs8
+
+> <model_server_params.name>
+atom_site
+
+> <model_server_params.value>
+{"label_asym_id":"B","auth_seq_id":301}
+
+> <model_server_stats.io_time_ms>
+63
+
+> <model_server_stats.parse_time_ms>
+9
+
+> <model_server_stats.create_model_time_ms>
+5
+
+> <model_server_stats.query_time_ms>
+239
+
+> <model_server_stats.encode_time_ms>
+0
+
+> <model_server_stats.element_count>
+13
+
+$$$$

@@ -1,0 +1,10 @@
+O=C(Nc1ccccc1)Nc1cccnc1	K0G
+C[C@@H](CO)Nc1ncc(Cl)cc1F	O0G
+CC(C)c1ccc(CN2CCC(O)CC2)cc1	O0M
+CN(Cc1cccc(F)c1)S(N)(=O)=O	O0P
+C[C@@H](CO)N(C)c1ncccc1F	O0V
+CCN(CC)c1cccc(O)c1	O0Y
+CC(=O)Nc1ccc(N2CCN(C)CC2)cc1	O1A
+CCN1CCC(Nc2ccccc2F)CC1	NVY
+NC(=O)N1CCN(c2ccc(F)cc2)CC1	O1M
+COc1ccc(NC(=O)Nc2ccncc2)cc1	JHJ
