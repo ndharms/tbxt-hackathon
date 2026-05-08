@@ -60,13 +60,73 @@ Note the paradox: 5QS2 is in a WT crystal yet the ligand binds where Newman desc
 - **Therapeutic rationale**: in the G177D apo crystal it sits on a crystallographic 2-fold, but Newman notes the pocket is "significantly larger and extends down to the DNA interface" in the full-length DNA-bound structure. Within ~8 Å of the DNA interface → potential fragment growth toward DNA-contact residues.
 - **Caveats**: the construct used for the fragment screen was truncated (41–211), removing the C-terminal helix that inserts into the DNA minor groove. The pocket as modelled is partly a consequence of that truncation plus crystal packing, so part of it may not exist in the physiologically relevant full-length form. Interpret with care.
 
-## Recommendations for our screening effort
+## Screening strategy
 
-1. **All four of our sites are distinct and legitimate** — no redundancy. My earlier claim that A and D were the same pocket was wrong; they're 36 Å apart.
-2. **Our A site (Newman A') is the most de-risked** — only brachyury site with published µM binders and a validated pharmacophore. Best target for fast-to-credible submissions.
-3. **Our F site (Newman D) is the highest-upside / highest-risk** — genuinely allosteric, disrupts co-activator recruitment, engages the disease variant residue. Novel-MoA angle.
-4. **Our G site (Newman C) and D site (Newman B)** are the candidates for DNA-competitive strategies — both approach the DNA interface. G site has more fragment evidence; D site is less characterized.
-5. Newman's best published binders are low µM. Expect our onepot hits to land in the same ballpark at best — don't overweight single-digit-µM predicted affinities from virtual screening.
+**Constraints we are working under:**
+- Commercial catalog (onepot, ~3.4B compounds) pre-filtered to molecules that contain at least one substructure from a Newman fragment-screen hit. This bakes in strong pharmacophore priors and dramatically reduces the search space before Boltz sees anything.
+- Boltz is our affinity oracle — moderately effective, but with known pose-fidelity problems on at least one of our sites.
+- We only submit a handful of compounds (4 ranked SMILES). Opportunity cost per slot is high.
+- Newman's best published binders top out at ~14–20 µM SPR K_D. Anything predicting sub-µM on this target is probably wrong, not genius.
+
+### Boltz oracle reliability per site
+
+Key concern: **Boltz's predicted pose at our D site (Newman pocket B, 5QS0) is visibly tilted w.r.t. the crystal pose.** That means the model is not correctly locating the ligand even when given a known binder, so the affinity score it outputs at that site is not anchored to the real geometry. The other three sites reproduce the crystal pose reasonably.
+
+| Our site | Newman pocket | Boltz pose fidelity | Oracle trust |
+|---|---|---|---|
+| A | A' | OK vs 5QS2 | High — trust the ranking |
+| D | B | **Tilted vs 5QS0** | **Low — treat scores as noisy** |
+| F | D | OK vs 5QSA | Medium — but see pocket-induced caveat below |
+| G | C | OK vs 5QS6 | Medium |
+
+Additional oracle-physics risks beyond pose:
+- **F site (pocket D)**: the pocket is partly ligand-induced and normally occupied by MPD cryoprotectant. Boltz assumes a rigid receptor from the input structure, so it will under-estimate the entropic cost of opening the cavity and over-estimate affinity. Also the cavity is buried, which inflates scores for anything that fits geometrically regardless of chemistry.
+- **A site (pocket A')**: lipophilic surface patch. Boltz (like most scoring functions) rewards burial of hydrophobic surface, so expect it to favor greasy, high-logP catalog compounds that will probably be insoluble or promiscuous. Watch logP and aromatic ring counts.
+- **G site (pocket C)**: sits on a crystallographic 2-fold, and the construct used for screening was truncated. The pocket in our input structure is a blend of real and crystal-artifact features. Scores will be internally consistent but may not reflect in-solution physics.
+
+### Per-site recommended slot allocation (4 total)
+
+Given that each submission needs to credibly bind TBXT, and our oracle is differentially reliable:
+
+- **2 slots → A site (pocket A')**. Most de-risked target. Published µM binders, clear pharmacophore (R180 H-bond + L91/V123/I125/V173/I182 hydrophobic cluster), Boltz pose looks right. Spend the majority of our budget here.
+- **1 slot → G site (pocket C)**. Second-most fragment evidence (9 hits). Boltz pose is reasonable. DNA-interface-adjacent angle is differentiated from the A-site story.
+- **1 slot → F site (pocket D)** *as a speculative swing*. Novel MoA (disrupts P300/KDM6 recruitment, engages D177 variant). Accept that the oracle is unreliable here; compensate by leaning harder on fragment-substructure similarity and manual pose inspection, not on Boltz scores.
+- **0 slots → D site (pocket B)**. The Boltz pose gap makes this the worst-informed site. Only 4 fragment hits, shallow pocket, disordered loop, and the DNA-competitive angle is already covered by G site. **Drop unless something extraordinary comes up.**
+
+### Chemistry / library pre-filters per site
+
+Every catalog compound already contains at least one Newman fragment substructure (baseline filter). On top of that:
+
+- **A site**: prefer compounds containing the **thiazole-acetamide / morpholino-thiazole** Newman substructure (5QS9, 5QSD, 7ZK2, 8A7N). Want an H-bond donor/acceptor reachable to R180 + extension into a hydrophobic vector. Reject logP > 5, aromatic ring count > 3, or obvious PAINS. This is the site where Newman actually progressed SAR, so mimicking that series is the highest-prior-probability play.
+- **G site**: prefer compounds containing the Newman pocket-C fragments (9 hits available in the PDB group) with a basic/polar head that can engage E48/E50/R54 — essentially a small cation or H-bond donor array. Avoid purely lipophilic catalog hits here; the pocket is polar.
+- **F site**: prefer compounds containing Newman pocket-D fragments (the 5QSA K2P benzoic acid, and the other 3 fragment hits in that pocket). Keep MW modest (<400) and avoid compounds that require the pocket to open substantially beyond what K2P occupies. The pocket is small and buried — bigger scaffolds will not fit regardless of what Boltz says.
+- **D site** (if we keep it for any reason): we don't have a reliable oracle here, so any compound we submit must have independently strong justification (e.g. high 3D similarity to NZ4 or another pocket-B fragment hit).
+
+Apply Chordoma Foundation constraints across all sites: LogP ≤ 6, HBD ≤ 6, HBA ≤ 12, MW ≤ 600; ideally 10–30 heavy atoms, HBD+HBA ≤ 11, cLogP < 5, <5 ring systems, ≤2 fused rings; reject acid halides, aldehydes, diazo, imines, >2 fused benzenes.
+
+### Interpreting Boltz scores
+
+- **Rank within a site, not across sites.** Different pockets give different score distributions; cross-site comparison is meaningless. Pick the top 1–2 per site.
+- **Always inspect the predicted pose.** If the pose doesn't engage the Newman-fragment-derived anchor residue(s) (R180 for A, E48/R54 for G, Y88 for F), down-weight the score regardless of number.
+- **Sanity-check with Newman's compounds.** Dock Newman's actual µM binders (thiazole series for A; K2P for F) through the same Boltz pipeline. If Boltz scores a known 15 µM binder at e.g. -8 kcal/mol, anything we submit scoring tighter than that without a good reason is probably a pose artifact.
+- **Expect low-µM at best.** Predictions of sub-µM binding on TBXT should raise suspicion, not excitement.
+- **F site specifically**: do not trust absolute Boltz scores. Use Boltz only to triage among compounds that already have strong pocket-D-fragment similarity and a pose that engages Y88 and/or D177.
+
+### Orthogonal validation plans
+
+Cheap checks that don't require more compute but catch oracle errors:
+
+1. **Pose QC against the crystal fragment.** For each top candidate, superpose the Boltz pose on the relevant Newman co-crystal (5QS9/8A7N for A, 5QS6 for G, 5QSA for F). The Newman fragment substructure inside our compound should occupy roughly the same volume as the crystal fragment. If it doesn't, reject.
+2. **Anchor-residue contact check.** A-site pose must H-bond R180; G-site pose must contact E48/R54; F-site pose must contact Y88. Enforced as a hard filter, not a soft one.
+3. **2D/3D similarity to Newman fragments as an orthogonal scorer.** Tanimoto on ECFP4 plus ROCS-style shape similarity against the relevant Newman fragment give a score that is independent of Boltz physics. If Boltz and similarity disagree strongly, trust the similarity signal more than Boltz.
+4. **Second docking tool for final candidates only.** Before committing submission, dock the final 4 with something classical (AutoDock Vina or equivalent) in the same pocket. Not to replace Boltz, just to catch cases where Boltz has produced a geometric nonsense pose we missed.
+5. **Known-binder retrodock.** Put Newman's published µM binders (K2P, the thiazole series, NZ4) through our full pipeline. If they don't rank highly and pose-QC correctly, the pipeline has a problem we should fix before trusting novel predictions.
+
+### What we are NOT trying to do
+
+- Not trying to beat Newman's 14 µM thiazole. Realistic goal is credible, fragment-informed, pose-sensible binders — not potency breakthroughs.
+- Not trying to cover all 4 sites equally. Oracle reliability and fragment-evidence weight strongly favor A and G.
+- Not trusting a single Boltz number in isolation. Every submission should survive pose QC + anchor-contact + similarity cross-check.
 
 ## Original notes preserved below
 
