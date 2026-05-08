@@ -6,6 +6,9 @@ requires-python = ">=3.11"
 dependencies = [
     # cheminformatics
     "rdkit>=2024.3.1",
+    # structural biology
+    "biopython>=1.84",
+    "numpy>=1.26.0",
     # data
     "pandas>=2.2.0",
     "openpyxl>=3.1.0",
@@ -21,6 +24,7 @@ dependencies = [
     "seaborn>=0.13.0",
     # utilities
     "tqdm>=4.66.0",
+    "loguru>=0.7.0",
 ]
 
 [dependency-groups]
