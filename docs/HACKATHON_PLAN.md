@@ -1,345 +1,270 @@
 # TBXT Hit Identification Hackathon — Execution Plan
 
-**Event:** May 9, 2026, Boston, Pillar VC (6 hours)
-**Team:** Nate Harms, Raymond Gasper
+**Event:** May 9, 2026, Boston, Pillar VC (6 hours)  
+**Team:** Nate Harms, Raymond Gasper  
 **Submission target:** 4 ranked non-covalent small-molecule SMILES from onepot's 3.4B CORE catalog, each with a
 predicted binding pocket, ranking rationale, key computed evidence, and physchem properties.
 
 ---
 
+## Status Summary (Updated May 8, 2026)
+
+### COMPLETED
+- **SAR diagnostics**: Zenodo SPR dataset unsuitable for regression (batch explains 15% variance, 30% activity cliffs at Tanimoto ≥0.7, kNN pKD std = 67% global)
+- **Classification model**: Zenodo binder/non-binder classifier achieves OOF AUROC 0.65 (ceiling for this data)
+- **Pocket mapping**: Four TBXT binding sites mapped to Newman pockets:
+  - A site = pocket A' (most validated, 22 fragments, good Boltz pose)
+  - D site = pocket B (dropped: bad Boltz pose)
+  - F site = pocket D (4 fragments, Y88/D177, P300/KDM6 interface, induced pocket)
+  - G site = pocket C (10 fragments, crystallographic 2-fold, truncated construct)
+- **Fragment catalog**: 29 fragment binders extracted from TEP PDF with per-pocket assignments
+
+### REVISED STRATEGY
+**Original plan**: ligand-based VL → multi-model ML → Boltz → Vina → final 4
+
+**New plan** (due to SAR diagnostics showing Zenodo regression ceiling):
+- **Abandon Zenodo as regression target**, use only as soft prior (binder/non-binder AUROC 0.65)
+- **Per-pocket active learning approach**:
+  - Build separate Boltz surrogates for A and G sites (reliable Boltz poses)
+  - Manual Boltz for F site (induced pocket, ~20 compounds only)
+  - Drop B site (bad Boltz pose)
+- **Fragment-based pocket assignment**: 29 TEP fragments as pocket-similarity scorer (independent of Boltz)
+- **Slot allocation**: 2× A site (most validated), 1× G site, 1× F site (speculative, novel MoA)
+
+---
+
 ## 1. Strategic frame
 
+### Original brief requirements
 Per the brief, judging weights "scientific rationale and computational support," "compound quality and tractability,"
 and "hit identification judgment" (good prioritization, not volume). The four-compound list should reflect *multiple,
 agreeing lines of evidence* and *scaffold/site diversity* so that one synthesis failure does not eliminate the team's
 chances at the experimental prizes (1 µM and 300 nM tiers).
 
 The 29 SGC TEP fragments (across 6 clusters) are the explicitly-named structural starting points. The Naar SMILES set (
-135 prior-screened compounds) is the explicit "avoid duplication" reference. The known-active SPR set (1,545 cleaned
-compounds, pKD 2.0–5.7) is our supervised-learning anchor.
+135 prior-screened compounds) is the explicit "avoid duplication" reference. The known-active SPR set (2153 SPR records,
+1913 non-null pKD 2.0–5.7, 1680 unique compounds, 14 batches) is available but has severe limitations (see SAR diagnostics).
 
-We will pursue a ligand-based virtual screen with structure-based confirmation, layered as: focused VL → multi-model ML
-triage → Naar-similarity prune → Boltz pose triage → Vina pose confirmation → diversified final 4.
-
----
-
-## 2. Roles and shared infrastructure
-
-| Owner | Pre-hackathon                                                                | Hackathon-day primary                                         |
-|-------|------------------------------------------------------------------------------|---------------------------------------------------------------|
-| Nate  | Step 1 (focused VL via OnePot CORE), XGB scaffolding, pair-model scaffolding | XGB + pair model inference, Naar dedup, Vina, final selection |
-| Ray   | Boltz environment, transfer-learning model scaffolding                       | ChemProp + transfer model training/inference, Boltz triage    |
-| Both  | Confirm shared git remote, agreed parquet schema, GPU access                 | 30-min syncs at hours 0, 2, 4, 5.5                            |
-
-**Shared artifacts** (commit to repo or shared drive at the named paths):
-
-- `data/processed/onepot_focused_vl.parquet` — focused VL after physchem and PAINS filters
-- `data/processed/predictions_<modelname>.parquet` — `(compound_id, pred_pkD, p_active, model_version)`
-- `data/processed/ensemble_survivors.parquet` — post-ensemble shortlist
-- `data/processed/boltz_top50/` — Boltz outputs (poses, scores, predicted site)
-- `submission/final_4.csv` — final SMILES with all submission fields
+### Evidence-based strategy revision
+After comprehensive SAR diagnostics (`docs/sar-diagnostics-rjg/README.md`), we've established:
+1. Zenodo SPR data has 0.65 AUROC ceiling for classification (batch effects, 100-fold replicate variation, activity cliffs)
+2. Newman 2025 fragment structures provide reliable pocket mapping
+3. Boltz pose reliability varies by site (A: high, B: low/drop, F: medium/induced, G: medium)
+4. Fragment-based pocket assignment can guide compound selection independent of noisy SPR data
 
 ---
 
-## 3. Pre-hackathon (Today, May 8) — Step 1 only
+## 2. Revised execution plan
 
-### 3.1 OnePot file intake (Nate, ~30 min)
+### Step 1: Fragment-based catalog filtering (onepot 3.4B → ~10K per pocket)
+**Owner:** Nate  
+**Time:** Pre-hackathon complete; catalog pre-filtered to compounds containing Newman fragment substructures
 
-Inspect the delivered `csv.gz` *before* writing query code. The schema is unknown; the duckdb plan must adapt.
+**Inputs:**
+- onepot 3.4B CORE catalog (pre-filtered to fragment-containing compounds)
+- 29 TEP fragment SMILES with pocket assignments (A/A', B, F=Newman D, G=Newman C)
 
-```python
-import duckdb
+**Outputs:**
+- Per-pocket compound pools filtered by:
+  - Fragment substructure match or ECFP4 Tanimoto ≥ 0.35 to pocket fragments
+  - Chordoma physchem filters: LogP ≤ 6, HBD ≤ 6, HBA ≤ 12, MW ≤ 600
+  - PAINS filters
+  - Naar deduplication (Tanimoto < 0.6)
+- Zenodo binder classifier applied as soft prior (AUROC 0.65)
 
-con = duckdb.connect()
-con.execute("INSTALL httpfs; LOAD httpfs;")
-# probe columns and row count
-con.sql("DESCRIBE SELECT * FROM read_csv_auto('s3://<bucket>/<key>.csv.gz', sample_size=10000)")
-con.sql("SELECT count(*) FROM read_csv_auto('s3://<bucket>/<key>.csv.gz')")
-con.sql("SELECT * FROM read_csv_auto('s3://<bucket>/<key>.csv.gz', sample_size=10000) LIMIT 5")
-```
+### Step 2: Per-pocket active learning with Boltz oracle (A and G sites only)
+**Owner:** Ray  
+**Budget:** ~1000 Boltz predictions per pocket (~2000 total, ~50 GPU-hours)
 
-Decisions to record in `docs/onepot_schema_notes.md`:
+**A site (pocket A') — 2 submission slots:**
+- Most validated site (22 fragments, known thiazole binders 14–20 µM)
+- Boltz pose reliable (R180 anchor contact)
+- Prefer thiazole-acetamide/morpholino-thiazole chemotypes (5QS9/5QSD/7ZK2/8A7N)
 
-1. SMILES column name and canonicalization status (canonical vs. as-supplied).
-2. Whether MW / LogP / HBD / HBA / heavy atoms are precomputed. If yes, trust them for the cheap initial pass and
-   recompute only on the survivors. If no, plan an RDKit physchem pass.
-3. Compound ID column.
-4. Total row count (sanity-check vs. 3.4B claim).
-5. File size on disk if downloaded; otherwise plan to keep it on S3 and stream.
+**G site (pocket C) — 1 submission slot:**
+- 10 fragments, crystallographic 2-fold symmetry
+- Boltz pose medium reliability (E48/E50/R54 polar contacts)
+- Prefer polar/basic head groups for E48/E50/R54 interactions
 
-Convert to Parquet partitioned by a SMILES-hash bucket if the flat csv.gz is unwieldy:
+**Process per pocket:**
+1. **Initial diversity sample**: ~1000 compounds (diversity picker on Morgan FP, fragment-substructure-filtered)
+2. **Boltz prediction batch**: predict ΔG for all ~1000 compounds
+3. **Train surrogate**: CheMeleon + MLP (SMILES → Boltz ΔG)
+4. **Validate surrogate**: Spearman >0.6 on holdout (if fails, use Boltz predictions directly)
+5. **Score full catalog**: apply surrogate to full filtered catalog (~10K compounds per pocket)
+6. **Re-Boltz top candidates**: re-predict top ~200 per pocket with Boltz for final validation
+7. **Pose QC**: filter by anchor residue contacts (R180 for A, E48/R54 for G)
 
-```python
-con.sql("""
-COPY (SELECT * FROM read_csv_auto('s3://<bucket>/<key>.csv.gz'))
-TO 'data/external/onepot_core.parquet'
-(FORMAT PARQUET, PARTITION_BY (mod(hash(smiles), 64)), OVERWRITE_OR_IGNORE)
-""")
-```
+### Step 3: F site manual Boltz (pocket D, induced) — 1 submission slot
+**Owner:** Ray  
+**Budget:** ~20 Boltz predictions (no surrogate, speculative)
 
-### 3.2 Fragment SMILES retrieval (Nate, ~20 min)
+**Rationale:**
+- Induced pocket (buried, Y88/D177, P300/KDM6 interface)
+- 4 TEP fragments (low count, novel MoA potential)
+- Boltz over-estimates affinity (buried cavity), but pose geometry still informative
+- MW < 400 preferred (small molecule for buried cavity)
 
-The 29 SGC TEP fragments live in:
+**Process:**
+1. Rank full F-site catalog (~10K) by max ECFP4 Tanimoto to 4 pocket-D fragments
+2. Select top ~20 by fragment similarity + diversity + MW < 400
+3. Boltz predict all ~20
+4. Pose QC: Y88 contact, cavity burial check
+5. Select best 1 for submission
 
-- TEP datasheet PDF (linked from the
-  brief): https://www.thesgc.org/sites/default/files/2024-05/TBXT_TEP_datasheet_v1_0.pdf
-- The accompanying SGC structural data link (PDB ligand entries): https://tinyurl.com/bddybesb
-- Newman et al. 2025 *Nature Communications* supplementary tables: https://www.nature.com/articles/s41467-025-56213-1
+### Step 4: Secondary docking validation (Vina)
+**Owner:** Nate  
+**Candidates:** Top ~50 compounds across A/G/F (post-Boltz QC)
 
-Save to `data/structures/sgc_fragments.csv` with columns: `frag_id, cluster, site, smiles, pdb_id`. Sites observed in
-the brief are F and G; the full clustering (6 clusters) and site assignments must come from the TEP/paper.
+**Process:**
+- AutoDock Vina on PDB 6F59 (DNA-stripped)
+- Per-site search boxes (A: R180 region, G: E48/R54 region, F: Y88/D177 region)
+- Vina score + RMSD vs Boltz pose
+- Newman fragment retrodocking as pose validation
 
-### 3.3 Substructure cascade (Nate, ~1.5–2 hr)
-
-The plan is intentionally **iterative**: start strict, fall back if the yield is empty; widen further if still empty;
-tighten if the yield is unmanageable.
-
-| Tier           | Method                                                                                   | Yield target                                        | Action if outside target                                             |
-|----------------|------------------------------------------------------------------------------------------|-----------------------------------------------------|----------------------------------------------------------------------|
-| T1             | RDKit `HasSubstructMatch` against full SMILES of all 29 fragments                        | 10⁵–10⁶                                             | If <10⁴: go to T2. If >10⁷: go to T1b (require ≥2 fragments matched) |
-| T2             | Same match against Bemis–Murcko scaffold of each fragment (or 6 cluster representatives) | 10⁵–10⁶                                             | If <10⁴: go to T3                                                    |
-| T3             | ECFP4 Tanimoto ≥ 0.35 to any fragment                                                    | 10⁵–10⁷                                             | If <10⁴: lower threshold to 0.30; if >10⁷: raise to 0.40             |
-| T4 (intersect) | T3 ∩ (Tanimoto ≥ 0.35 to any pKD ≥ 3.5 SPR active)                                       | If T1–T3 produce ≥10⁷ candidates, this narrows them | Always also save as a "high-confidence" cohort                       |
-
-Engineering details:
-
-1. Pure-SQL substructure isn't possible. Use a two-pass approach:
-    - **Coarse pass (DuckDB, in S3 or local Parquet):** for each fragment, generate a few canonical-SMILES *substring*
-      heuristics (e.g., its longest aromatic substring) and prefilter with
-      `WHERE smiles LIKE '%...%' OR smiles LIKE '%...%'`. This is sloppy but cheap and reduces 3.4B → ≤10⁸.
-    - **Confirmation pass (RDKit, parallelized):** run `HasSubstructMatch` on the prefiltered set with
-      `multiprocessing.Pool`. Tag each hit with the matched fragment ID(s) and cluster(s). Persist to Parquet.
-2. Track which fragment(s) and cluster(s) each candidate matches — this becomes the "predicted binding pocket"
-   annotation downstream.
-3. If T1 has to escalate to T3/T4, switch from RDKit substructure to RDKit fingerprint Tanimoto with the same parallel
-   pattern (compute fingerprints once per shard).
-
-### 3.4 Physchem and chemistry filters (Nate, ~30–60 min)
-
-Apply in this order, with row counts logged after each filter (assertion-driven, per Harms Informatics conventions):
-
-1. Hard Chordoma filters: `LogP ≤ 6`, `HBD ≤ 6`, `HBA ≤ 12`, `MW ≤ 600`.
-2. Lead-like soft filters: `10 ≤ heavy_atoms ≤ 30`, `HBD + HBA ≤ 11`, `cLogP < 5`, `num_ring_systems < 5`,
-   `max_fused_rings ≤ 2`.
-3. PAINS / problematic motifs filter:
-    - RDKit `FilterCatalog` with PAINS_A, PAINS_B, PAINS_C catalogs.
-    - Custom SMARTS for: acid halides, aldehydes, diazo, imines, > 2 fused benzene rings, long alkyl chains (≥ 6
-      contiguous sp³ CH₂), reactive Michael acceptors not justified by fragment match.
-4. Optional: drop compounds with Tanimoto ≥ 0.85 to the existing 1,545-compound SPR training set's *inactives* (
-   defensible: don't waste budget re-screening near-duplicates of known weak binders).
-
-Output `data/processed/onepot_focused_vl.parquet` with columns:
-`compound_id, smiles, mw, logp, hbd, hba, heavy_atoms, num_rings, fused_ring_max, tpsa, rotatable_bonds, matched_fragment_ids, matched_cluster_ids, similarity_to_fragments_max, passes_hard_filters, passes_softer_filters`.
-
-**Target final size:** 10⁵–10⁷. If significantly outside this range, go back to §3.3 and adjust the cascade. Do not
-enter the hackathon with an unfiltered VL.
-
-### 3.5 Pre-hackathon code scaffolding (both, parallel, ~1 hr each)
-
-Write training/inference scripts so the hackathon-day work is just `uv run python train_<x>.py`:
-
-- `notebooks/02-xgb-baseline.ipynb` (Nate): Morgan FP (radius 2, 2048 bits) → `XGBClassifier` at pKD ≥ 5.0,
-  scaffold-stratified 5-fold CV, save model + inference function.
-- `scripts/train_chemprop.py` (Ray): D-MPNN, same label, same scaffold split, save checkpoint.
-- `scripts/infer_pair_model.py` (Nate, stretch): Siamese / pair-ranking model that takes (query, reference) → ΔpKD
-  prediction. Reference panel = the top-50 pKD compounds in the SPR set. Inference produces a query-vs-reference rank
-  score.
-- `scripts/train_transfer.py` (Ray): start from a pretrained chemical foundation model (e.g., MoLFormer or ChemBERTa)
-  and fine-tune on TBXT pKD.
-
-Lock down: featurization function (shared `src/tbxt_hackathon/featurize.py`), train/val split (shared seed), label
-threshold (pKD ≥ 5.0).
+### Step 5: Final selection (4 compounds)
+**Criteria:**
+1. **Site diversity**: 2× A site, 1× G site, 1× F site
+2. **Scaffold diversity**: 4 distinct Bemis–Murcko scaffolds
+3. **Boltz evidence**: A/G ΔG better than Newman thiazole series (−7 to −8 kcal/mol), F ΔG used for pose only
+4. **Pose QC**: anchor contacts (R180, E48/R54, Y88), Newman retrodock agreement
+5. **Vina confirmation**: score within 1 kcal/mol of best per-site
+6. **Zenodo classifier**: prefer p_active > 0.5 (weak prior, AUROC 0.65)
+7. **Fragment similarity**: max Tanimoto to pocket fragments ≥ 0.35
 
 ---
 
-## 4. Hackathon day (May 9, 6 hours)
+## 3. Critical technical notes
 
-Times below are anchors, not deadlines. The 30-min sync points are non-negotiable.
+### Zenodo SPR data limitations (from `docs/sar-diagnostics-rjg/README.md`)
+- **Batch effects**: date alone explains R²=0.155 of pKD variance
+- **Replicate noise**: mean std = 0.92 pKD (100-fold KD range), median |ΔpKD| = 1.03 for Tanimoto 0.95–1.0
+- **Activity cliffs**: 30% of near-identical pairs (Tanimoto ≥ 0.7) diverge >1 pKD unit
+- **Model ceiling**: CheMeleon embedding + Ridge probe underperforms train-mean baseline
+- **Classification AUROC**: 0.655 (chemeleon_no_val model, OOF)
+- **Conclusion**: use as soft prior only, not regression target
 
-### Hour 0:00 — Sync and kickoff (15 min)
+### Newman pocket fragment counts (from `brachyury-site-summary.md`)
+- A/A' (~22 fragments): most validated, thiazole series 14–20 µM SPR
+- B (5 fragments): dropped (bad Boltz pose, tilted)
+- D/F (4 fragments): induced pocket, Y88/D177, P300/KDM6 interface, buried
+- C/G (10 fragments): crystallographic 2-fold, E48/E50/R54 polar head
+- Cd-mediated artifacts: exclude from similarity calculations
 
-- Confirm both laptops can read `data/processed/onepot_focused_vl.parquet`.
-- Confirm Ray's GPU is reachable; Boltz weights are downloaded; Vina is installed locally.
-- Re-confirm the active threshold (pKD ≥ 5.0) and the agreement criterion (see §4.3).
-- Each person opens their model script and starts training in the background.
+### Boltz oracle reliability per site (from `brachyury-site-summary.md`)
+- **A (high)**: good pose, R180 anchor, known binders validate
+- **B (low)**: tilted pose vs crystallographic, DROP THIS SITE
+- **F (medium)**: induced pocket, over-estimates affinity, pose geometry still useful
+- **G (medium)**: truncated construct in PDB, 2-fold symmetry, E48/R54 contacts
 
-### Hour 0:15–2:00 — Step 2: Multi-model ML training and inference
+### Known binder SPR benchmarks
+- Newman thiazole series: 14–20 µM (A/A' pocket, 5QS9/5QSD/7ZK2/8A7N)
+- TEP progressed compound: 80–104 µM on full-length G177D
+- Naar compounds: Z979336988, Z795991852, D203-0031 (sites F or F/G)
 
-Parallel work:
+### Per-site chemistry filters
+- **A site**: prefer thiazole-acetamide/morpholino-thiazole, avoid >2 fused benzene rings
+- **G site**: prefer polar/basic head for E48/E50/R54, HBD ≥ 2, avoid lipophilic cores
+- **F site**: MW < 400 (buried cavity), avoid long alkyl chains, prefer compact aromatics
 
-- **Nate:** retrain XGB on full SPR set (no held-out test now; all 1,545 compounds are training); generate `p_active`
-  for every row of the focused VL. Run pair-model inference if scaffolded successfully — score each VL row against the
-  top-50 reference panel, take median rank.
-- **Ray:** retrain ChemProp on full SPR set; run inference on focused VL. Same for the transfer model.
+---
 
-Expected runtimes (rough, depends on VL size):
+## 4. Roles and timeline (hackathon day)
 
-- XGB inference on 10⁷ Morgan FPs: <10 min on CPU
-- ChemProp inference on 10⁷ SMILES: 30–90 min on a single GPU; consider a **first-stage 10x downsample** (predict on a
-  random 10% subset) if total VL > 5×10⁶ to ensure hour-2 sync hits on time
-- Transfer model inference: similar to ChemProp
+| Time | Nate | Ray |
+|------|------|-----|
+| Hour 0:00–1:00 | Prepare Vina receptor (6F59 DNA-stripped, per-site boxes) | Launch A-site Boltz batch (~1000 compounds) |
+| Hour 1:00–2:00 | Monitor A-site Boltz, prepare pose QC scripts | Train A-site CheMeleon+MLP surrogate |
+| Hour 2:00–3:00 | Score A-site catalog with surrogate, select top 200 | Launch G-site Boltz batch (~1000 compounds) |
+| Hour 3:00–4:00 | Re-Boltz A-site top 200, pose QC, Vina validation | Train G-site surrogate, F-site manual Boltz (~20) |
+| Hour 4:00–5:00 | Re-Boltz G-site top 200, pose QC, Vina validation | Pose QC all survivors, Newman retrodocking |
+| Hour 5:00–5:45 | Final selection (2× A, 1× G, 1× F), scaffold/site diversity check | Rationale writeup, evidence tables |
+| Hour 5:45–6:00 | Pre-submission checklist, submit | Archive outputs, commit to git |
 
-If any model fails to train, fall back to: XGB only is acceptable; ChemProp is highly desirable; transfer + pair models
-are stretch.
+---
 
-### Hour 2:00 — Sync 1
+## 5. Budget and feasibility
 
-Tally model coverage. Compute pairwise Spearman rank correlation between models (sanity: should be 0.3–0.7 — too low
-means broken model, too high means redundant).
+### Boltz predictions
+- A site: ~1000 initial + 200 re-Boltz = 1200 predictions
+- G site: ~1000 initial + 200 re-Boltz = 1200 predictions  
+- F site: ~20 predictions
+- **Total: ~2420 predictions at ~2 min each on A100 = ~80 GPU-hours** (feasible with 2× A100 for 6 hours = 12 GPU-hours available? **CHECK THIS ASSUMPTION**)
 
-### Hour 2:00–2:30 — Step 2 cont.: Ensemble and agreement filter
+### Surrogate model viability
+- CheMeleon (pretrained) + MLP on ~1000 Boltz ΔG predictions per pocket
+- Target: Spearman >0.6 on holdout (if fails, use Boltz predictions directly, no catalog expansion)
+- Fallback: if surrogate fails, reduce re-Boltz budget to top 50 per pocket (prioritize pose diversity)
 
-- Rank each compound within each model (lower rank = more active).
-- Compute **rank product** across available models. Optionally weight ChemProp higher (typically the strongest single
-  learner on small chemical sets).
-- Select top compounds by rank product, requiring each surviving model to have placed the compound in its top X% (e.g.,
-  top 5%). This implements "highly predicted by all models" cleanly.
-- Target: 1,000–5,000 compounds out.
+---
 
-### Hour 2:30–3:00 — Step 3: Naar-similarity dedup and diversity selection
+## 6. Submission deliverables
 
-- Compute ECFP4 fingerprints of the 135 Naar compounds.
-- For each surviving compound, max Tanimoto to any Naar compound.
-- **Drop** compounds with max Tanimoto ≥ 0.6 (avoids prior-art duplication, which the brief explicitly rewards
-  avoiding).
-- **Drop** compounds whose Bemis–Murcko scaffold is identical to any Naar compound with pKD ≥ 4.0 (more conservative
-  duplication check).
-- From survivors, select ~50 for Boltz triage by:
-    - Murcko-scaffold cluster the survivors (sklearn AgglomerativeClustering on Tanimoto distance, or use Butina). Aim
-      for ≥ 10 clusters.
-    - Pick the top 5 per cluster by ensemble rank.
-    - Force balance across the 6 SGC fragment clusters (i.e., each cluster represented by ≥ 5 candidates if possible).
+**File:** `submission/final_4.csv`
 
-Output: `data/processed/boltz_input.parquet` (≤ 50 rows).
-
-### Hour 3:00–4:30 — Step 4: Boltz pose triage (Ray)
-
-Boltz inputs: TBXT DBD sequence (residues 42–219, from UniProt O15178) + each ligand SMILES. ~50 compounds at ~1.5 min
-each on a single modest GPU = ~75 min of pure compute; budget 90 min including I/O.
-
-Reference set to also run through Boltz (so we can compare candidate scores to a known-active baseline):
-
-- **Z979336988**, **Z795991852**, **D203-0031** (the three Naar compounds with prior CF SPR data, sites F or F/G).
-- 3–6 SGC fragments from the most populated clusters as positive controls.
-
-Capture per compound: predicted complex structure (CIF), iPTM, predicted aligned error, Boltz binding-affinity score if
-available, predicted pocket residues.
-
-**Survivor criterion:** candidate must (a) score better than the median Naar reference and (b) localize to a site that
-overlaps with at least one SGC fragment cluster's residues.
-
-Parallel work for Nate during this window: prepare receptor for Vina (PDBQT from PDB 6F59 chain A; one search box per
-known site F, G, plus any other site that the Boltz reference set occupies).
-
-### Hour 4:30 — Sync 2
-
-Review Boltz survivors with Ray. Pick the top 10–15 for Vina.
-
-### Hour 4:30–5:00 — Step 5: Vina confirmation (Nate)
-
-AutoDock Vina on top 10–15 against 6F59 receptor.
-
-- Use site-specific search boxes per the Boltz-predicted site (cover sites F and G at minimum).
-- 3D-conformer prep with Meeko or RDKit (`AllChem.EmbedMolecule` + `MMFFOptimizeMolecule`).
-- Run with `exhaustiveness=16`, `num_modes=9`.
-- For each compound, record: top-pose Vina score, RMSD vs. Boltz pose (sanity check), key contact residues (visual
-  review or PLIP).
-
-Survivor criterion: Vina score within 1 kcal/mol of best per-site, and pose qualitatively consistent with Boltz pose.
-
-### Hour 5:00 — Sync 3
-
-Spread the Vina/Boltz/ML evidence across a small grid in a notebook. Pull up structures in py3Dmol or PyMOL for each
-remaining candidate.
-
-### Hour 5:00–5:45 — Step 6: Final 4 selection and rationale
-
-Pick the final 4 to maximize:
-
-1. Multi-model ML rank-product (top decile of survivors).
-2. Boltz iPTM and predicted affinity strictly better than the median Naar reference.
-3. Vina score (consistent with Boltz pose).
-4. **Scaffold diversity** — 4 different Murcko scaffolds. This is a hard constraint; do not put all four eggs in one
-   basket.
-5. **Site diversity** — at least 2 distinct SGC fragment-cluster sites covered.
-6. **Tractability** — already in OnePot CORE (synthesis-on-demand by definition).
-
-Document each choice in `submission/final_4.csv` with required fields:
-
+**Columns:**
 - `rank` (1–4)
-- `smiles`
-- `compound_id` (OnePot)
-- `predicted_site` (e.g., "F", "G", "fragment cluster 3")
-- `rationale` (~3 sentences: what makes this compound the rank-N pick, what evidence agreed)
-- `evidence` (XGB rank, ChemProp rank, transfer rank, pair-model rank, Boltz iPTM, Boltz affinity, Vina kcal/mol, max
-  Tanimoto to fragments, max Tanimoto to Naar)
+- `smiles` (canonical RDKit)
+- `compound_id` (onepot CORE ID)
+- `predicted_site` (A, G, or F with Newman pocket mapping)
+- `rationale` (3–5 sentences: evidence convergence, novelty, site rationale)
+- `evidence` (Boltz ΔG, iPTM, Vina kcal/mol, max Tanimoto to pocket fragments, Zenodo p_active, CheMeleon surrogate score)
 - `properties` (MW, LogP, HBD, HBA, heavy atoms, ring systems, TPSA)
+- `anchor_contacts` (R180 for A, E48/R54 for G, Y88 for F)
+- `scaffold` (Bemis–Murcko SMILES)
 
-### Hour 5:45–6:00 — Submission and sanity check
-
-Pre-submission checklist:
-
-- [ ] All 4 SMILES parse cleanly with RDKit and round-trip to canonical form.
-- [ ] All 4 satisfy hard Chordoma filters (LogP ≤ 6, HBD ≤ 6, HBA ≤ 12, MW ≤ 600).
-- [ ] None contain explicit PAINS hits (re-run RDKit `FilterCatalog`).
-- [ ] All 4 are present in OnePot CORE (verify by ID lookup).
-- [ ] Rank order is intentional and defensible; rationale aligns with rank.
-- [ ] Site assignment is supported by at least Boltz, ideally Boltz + Vina.
-- [ ] No two of the 4 share a Bemis–Murcko scaffold.
-- [ ] At least 2 SGC fragment-cluster sites are represented.
-
-Submit. Save final state, push to git, archive `data/processed/` and `submission/`.
+**Validation checklist:**
+- [ ] All 4 SMILES parse with RDKit, round-trip to canonical
+- [ ] All 4 satisfy Chordoma filters (LogP ≤ 6, HBD ≤ 6, HBA ≤ 12, MW ≤ 600)
+- [ ] No PAINS hits (RDKit FilterCatalog)
+- [ ] All 4 present in onepot CORE (verify by ID)
+- [ ] 4 distinct Bemis–Murcko scaffolds
+- [ ] Site distribution: 2× A, 1× G, 1× F
+- [ ] Boltz pose QC passed (anchor contacts present)
+- [ ] Vina score within 1 kcal/mol of best per-site (A/G sites minimum)
+- [ ] Max Tanimoto to Naar < 0.6 (no prior-art duplication)
 
 ---
 
-## 5. Risks and contingencies
+## 7. Key decisions and assumptions
 
-| Risk                                                                   | Likelihood | Mitigation                                                                                                                 |
-|------------------------------------------------------------------------|------------|----------------------------------------------------------------------------------------------------------------------------|
-| OnePot file format unexpected (e.g., InChI not SMILES, malformed gzip) | Medium     | §3.1 schema probe surfaces this today, not Day 0                                                                           |
-| Substructure cascade yields zero or 10⁸+                               | Medium     | §3.3 explicitly defines the fallback ladder                                                                                |
-| ChemProp install/CUDA issue on Ray's machine                           | Medium     | Resolve before Day 0; XGB-only is an acceptable fallback                                                                   |
-| Boltz fails on some ligands (hydrogen handling, exotic atoms)          | Medium     | Carry redundancy: 50 → expect ~40 successes                                                                                |
-| ML poorly calibrated due to small/narrow training set                  | High       | Use rank-product, not absolute probability; require multi-model agreement                                                  |
-| Top-ranked set is one scaffold                                         | Medium     | Diversity selection step in §4 forces ≥10 clusters                                                                         |
-| Vina box placement wrong                                               | Medium     | Use Boltz pose as the box centroid; 6F59 has DNA in the active region — verify the receptor is DNA-stripped before docking |
-| Time slip past hour 5                                                  | High       | Submission is hard-deadlined; cut Vina before submission, not the writeup                                                  |
+### Decisions
+1. **Drop Zenodo regression**: use as soft binder/non-binder prior only (AUROC 0.65)
+2. **Drop B site**: bad Boltz pose, not worth budget
+3. **Per-pocket surrogates**: separate CheMeleon+MLP for A and G (distinct chemistry/pharmacophores)
+4. **F site speculative**: 1 slot for novel MoA, fragment similarity only (no surrogate)
+5. **Slot allocation**: 2× A (most validated), 1× G (10 fragments), 1× F (speculative)
 
----
-
-## 6. What changes if things go right
-
-If §3.3 yields a clean 10⁶-compound focused VL today, we're well-positioned. If it yields 10⁸+, we'll add a stricter
-filter (e.g., require ≥2 fragment hits, or intersect with similarity to top SPR actives) and rerun before Day 0.
-
-If Step 2's models all converge with reasonable scaffold-CV AUC (say, ≥ 0.7), the ensemble will narrow nicely and the
-Naar dedup step will leave us with hundreds, not thousands. If CV AUC is poor (< 0.6 across all models), we lean harder
-on the structural evidence (Boltz + fragment-match strength) and treat ML purely as a coarse prefilter.
+### Assumptions to validate
+1. **Boltz budget**: 80 GPU-hours feasible? (need 2× A100 for 6 hours or equivalent)
+2. **Surrogate Spearman >0.6**: achievable with ~1000 training points per pocket?
+3. **onepot catalog delivery**: pre-filtered to fragment substructures, ~10K per pocket?
+4. **Newman fragment SMILES**: already extracted and pocket-assigned?
 
 ---
 
-## 7. Open items before Day 0
+## 8. Risks and mitigations
 
-1. **OnePot delivery confirmation.** Confirm S3 URL, expiration, credentials.
-2. **SGC fragment SMILES extraction.** Pull the 29 fragments + cluster + site from the TEP datasheet/Newman 2025
-   supplementary.
-3. **Site definitions.** Compile a list of pocket residues for sites F, G (and any others in the TEP) so Boltz outputs
-   can be assigned to a site automatically.
-4. **Pair model architecture decision.** Specify exact architecture before scaffolding: Siamese GNN with margin loss, or
-   pairwise concatenated-FP regressor for ΔpKD. Default to the latter unless Nate has a stronger preference.
-5. **GPU access for Ray confirmed.** Boltz throughput estimate (50 compounds in ~90 min) assumes a single A100-class
-   GPU. Confirm.
+| Risk | Likelihood | Mitigation |
+|------|------------|------------|
+| Boltz GPU time exceeds budget | High | Reduce re-Boltz to top 50 per pocket (prioritize diversity), skip G-site surrogate if needed |
+| Surrogate Spearman < 0.6 | Medium | Use Boltz predictions directly, reduce catalog scoring to top 200 by fragment similarity |
+| All top A-site candidates are one scaffold | Medium | Force scaffold diversity in top-200 re-Boltz selection (≥10 Murcko clusters) |
+| F-site Boltz poses all bury poorly | Medium | Accept best pose by Y88 contact, deprioritize ΔG (use for ranking only) |
+| Time slip past hour 5 | High | Cut G-site re-Boltz to 50, cut Vina to A-site only, prioritize submission over validation |
 
 ---
 
-## 8. References
+## 9. References
 
 - Hackathon brief: https://docs.google.com/document/d/1K2r_7HopkH1_4jsGTrZZX8zR1FKgMTxMe-43dG4xJuA
 - TBXT TEP datasheet (SGC, 2024): https://www.thesgc.org/sites/default/files/2024-05/TBXT_TEP_datasheet_v1_0.pdf
 - Newman et al., *Nat Commun* 2025: https://doi.org/10.1038/s41467-025-56213-1
 - PDB 6F59 (TBXT DBD bound to DNA): https://www.rcsb.org/structure/6F59
 - UniProt O15178 (TBXT): https://www.uniprot.org/uniprotkb/O15178/entry
-- Naar SMILES (prior screen, deduplicate
-  against): https://docs.google.com/spreadsheets/d/1k-vcM_jVd1s_6W6u-ag2YQabGov_40oB
+- Naar SMILES (prior screen, deduplicate against): https://docs.google.com/spreadsheets/d/1k-vcM_jVd1s_6W6u-ag2YQabGov_40oB
 - onepot CORE: https://www.onepot.ai/
 - Experimental prize tiers: https://tbxtchallenge.org/#prizes
+- SAR diagnostics (internal): `docs/sar-diagnostics-rjg/README.md`
+- Pocket mapping (internal): `brachyury-site-summary.md`
+- Zenodo SPR data: `data/zenodo/tbxt_spr_merged.csv` (2153 records, 1913 non-null pKD, 14 batches)
