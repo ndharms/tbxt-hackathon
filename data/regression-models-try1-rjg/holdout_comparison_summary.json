@@ -1,0 +1,96 @@
+{
+  "n_holdout": 131,
+  "target": "pKD_global_mean",
+  "train_pool_mean_pKD": 3.0782028089954356,
+  "baseline_mse_train_mean": 2.257788129612107,
+  "baseline_rmse_train_mean": 1.502593800603512,
+  "baseline_mae_train_mean": 0.9574330677160316,
+  "ensemble_metrics": {
+    "chemeleon_with_val": {
+      "mean_squared_error": 2.2486781767034625,
+      "rmse": 1.4995593275037378,
+      "mae": 0.9726714973640268,
+      "r2": -0.06631632863895565,
+      "spearman": 0.1290663534938344
+    },
+    "chemeleon_no_val": {
+      "mean_squared_error": 2.212675822104777,
+      "rmse": 1.4875065788442003,
+      "mae": 0.9847879275281728,
+      "r2": -0.04924412196405159,
+      "spearman": 0.11371376714888164
+    },
+    "xgb_with_val": {
+      "mean_squared_error": 2.2865010538665613,
+      "rmse": 1.5121180687587068,
+      "mae": 0.9733349613698581,
+      "r2": -0.08425182155784117,
+      "spearman": -0.00027491629065882947
+    },
+    "xgb_no_val": {
+      "mean_squared_error": 2.3138907869373604,
+      "rmse": 1.5211478517676578,
+      "mae": 1.0067067520147945,
+      "r2": -0.09723994938913094,
+      "spearman": 0.053723375860780444
+    }
+  },
+  "best_by_mean_squared_error": "chemeleon_no_val",
+  "tukeyhsd_alpha": 0.05,
+  "tukeyhsd_pairs": [
+    {
+      "group1": "chemeleon_no_val",
+      "group2": "chemeleon_with_val",
+      "meandiff": 0.036,
+      "p_adj": 0.9999,
+      "lower": -1.3639,
+      "upper": 1.4359,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_no_val",
+      "group2": "xgb_no_val",
+      "meandiff": 0.1012,
+      "p_adj": 0.9977,
+      "lower": -1.2987,
+      "upper": 1.5011,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_no_val",
+      "group2": "xgb_with_val",
+      "meandiff": 0.0738,
+      "p_adj": 0.9991,
+      "lower": -1.3261,
+      "upper": 1.4737,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_with_val",
+      "group2": "xgb_no_val",
+      "meandiff": 0.0652,
+      "p_adj": 0.9994,
+      "lower": -1.3347,
+      "upper": 1.4651,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_with_val",
+      "group2": "xgb_with_val",
+      "meandiff": 0.0378,
+      "p_adj": 0.9999,
+      "lower": -1.3621,
+      "upper": 1.4377,
+      "reject": false
+    },
+    {
+      "group1": "xgb_no_val",
+      "group2": "xgb_with_val",
+      "meandiff": -0.0274,
+      "p_adj": 1.0,
+      "lower": -1.4273,
+      "upper": 1.3725,
+      "reject": false
+    }
+  ]
+}

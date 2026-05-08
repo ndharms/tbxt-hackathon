@@ -1,0 +1,134 @@
+{
+  "holdout_fold": 4,
+  "target": "pKD_global_mean",
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "val_fold": 1,
+      "train_folds": [
+        2,
+        3,
+        5
+      ],
+      "n_train": 892,
+      "n_val": 331,
+      "n_test": 245,
+      "best_val_loss": 3.3658621311187744,
+      "best_val_rmse": 1.834628701210022,
+      "best_val_mae": 1.242984652519226,
+      "best_val_r2": -0.05333709716796875,
+      "test_rmse": 1.3260565863541864,
+      "test_mae": 1.0511348247528076,
+      "test_r2": -0.4135347604751587,
+      "test_spearman": 0.2999491835608259,
+      "best_epoch": 12,
+      "ckpt": "/Users/raymondgasper/Documents/other/tbxt-hackathon/data/regression-models-try1-rjg/chemeleon_with_val_cv_fold_0/best-epoch=1-val_loss=3.366.ckpt"
+    },
+    {
+      "test_fold": 1,
+      "val_fold": 2,
+      "train_folds": [
+        0,
+        3,
+        5
+      ],
+      "n_train": 967,
+      "n_val": 170,
+      "n_test": 331,
+      "best_val_loss": 3.056347608566284,
+      "best_val_rmse": 1.7482413053512573,
+      "best_val_mae": 1.2019777297973633,
+      "best_val_r2": 0.015158116817474365,
+      "test_rmse": 1.793096134755223,
+      "test_mae": 1.1503534317016602,
+      "test_r2": -0.006185650825500488,
+      "test_spearman": 0.2996807278022972,
+      "best_epoch": 15,
+      "ckpt": "/Users/raymondgasper/Documents/other/tbxt-hackathon/data/regression-models-try1-rjg/chemeleon_with_val_cv_fold_1/best-epoch=4-val_loss=3.056.ckpt"
+    },
+    {
+      "test_fold": 2,
+      "val_fold": 3,
+      "train_folds": [
+        0,
+        1,
+        5
+      ],
+      "n_train": 812,
+      "n_val": 486,
+      "n_test": 170,
+      "best_val_loss": 2.0963947772979736,
+      "best_val_rmse": 1.4478932619094849,
+      "best_val_mae": 0.9129332304000854,
+      "best_val_r2": 0.12085765600204468,
+      "test_rmse": 1.7754918773554487,
+      "test_mae": 1.2923023700714111,
+      "test_r2": -0.015784025192260742,
+      "test_spearman": 0.026300523323624064,
+      "best_epoch": 13,
+      "ckpt": "/Users/raymondgasper/Documents/other/tbxt-hackathon/data/regression-models-try1-rjg/chemeleon_with_val_cv_fold_2/best-epoch=2-val_loss=2.096.ckpt"
+    },
+    {
+      "test_fold": 3,
+      "val_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2
+      ],
+      "n_train": 746,
+      "n_val": 236,
+      "n_test": 486,
+      "best_val_loss": 3.3925530910491943,
+      "best_val_rmse": 1.841888427734375,
+      "best_val_mae": 1.3617290258407593,
+      "best_val_r2": -0.0712423324584961,
+      "test_rmse": 1.5132624509290666,
+      "test_mae": 1.014902114868164,
+      "test_r2": 0.03968191146850586,
+      "test_spearman": 0.3119639649038649,
+      "best_epoch": 14,
+      "ckpt": "/Users/raymondgasper/Documents/other/tbxt-hackathon/data/regression-models-try1-rjg/chemeleon_with_val_cv_fold_3/best-epoch=3-val_loss=3.393.ckpt"
+    },
+    {
+      "test_fold": 5,
+      "val_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        3
+      ],
+      "n_train": 987,
+      "n_val": 245,
+      "n_test": 236,
+      "best_val_loss": 1.1893202066421509,
+      "best_val_rmse": 1.0905596017837524,
+      "best_val_mae": 0.7204645276069641,
+      "best_val_r2": 0.04394865036010742,
+      "test_rmse": 1.9813478463737957,
+      "test_mae": 1.405518889427185,
+      "test_r2": -0.23960304260253906,
+      "test_spearman": -0.11450165634495575,
+      "best_epoch": 12,
+      "ckpt": "/Users/raymondgasper/Documents/other/tbxt-hackathon/data/regression-models-try1-rjg/chemeleon_with_val_cv_fold_5/best-epoch=1-val_loss=1.189.ckpt"
+    }
+  ],
+  "oof_rmse": 1.665146644445534,
+  "oof_mae": 1.146410947611691,
+  "oof_r2": -0.03678656939491387,
+  "oof_spearman": 0.2008277874462686,
+  "holdout_ensemble_rmse": 1.4995593295697496,
+  "holdout_ensemble_mae": 0.9726714971604442,
+  "holdout_ensemble_r2": -0.06631633157718175,
+  "holdout_ensemble_spearman": 0.1290663534938344,
+  "config": {
+    "hidden_dim": 256,
+    "dropout": 0.2,
+    "max_epochs": 60,
+    "patience": 10,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "random_state": 0,
+    "accelerator": "mps"
+  }
+}
