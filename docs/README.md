@@ -16,6 +16,11 @@ Writeups and reusable artifacts from the TBXT hit-identification work.
   — first-pass continuous pKD regression counterpart of the classifier
   experiment. Same four ensemble variants, squared-error TukeyHSD, and
   train-mean baseline. rjg, 2026-05-08.
+- [`sar-diagnostics-rjg/`](sar-diagnostics-rjg/README.md)
+  — post-hoc analysis of why regression fails: batch-effect ANOVA
+  (R² = 0.16), SAR smoothness pairwise analysis (Spearman[Tanimoto,
+  |ΔpKD|] ≈ 0), frozen CheMeleon embedding probes, and batch x fold
+  confounding. rjg, 2026-05-08.
 
 ## Adding a new experiment
 
