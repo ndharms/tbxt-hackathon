@@ -1,0 +1,25 @@
+{
+  "n_records_raw": 2153,
+  "n_records_null_pKD_dropped": 240,
+  "n_records_clean": 1913,
+  "n_compounds": 1680,
+  "n_batches": 14,
+  "n_compounds_multi_measurement": 65,
+  "n_compounds_multi_batch": 65,
+  "within_compound_pKD_std": {
+    "n": 65,
+    "median": 0.29283754878069357,
+    "mean": 0.9233398747344672,
+    "p90": 3.2198012100978395,
+    "max": 4.620311357021211
+  },
+  "within_compound_pKD_range": {
+    "median": 0.466135837372637,
+    "mean": 1.5843858628376044,
+    "p90": 6.095063445646226,
+    "max": 9.70103248493498
+  },
+  "global_pKD_std": 1.7943936642403993,
+  "batch_median_pKD_spread": 1.9700035091706893,
+  "r2_batch_only_anova": 0.15486048285693943
+}

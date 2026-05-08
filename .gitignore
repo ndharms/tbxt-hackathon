@@ -16,5 +16,11 @@ build/
 !data/zenodo/tbxt_spr_merged.csv
 !data/processed/*.csv
 !data/Naar_SMILES.xlsx
+!data/folds-pacmap-kmeans6/*.csv
+!data/classification-models-try1-rjg/*.csv
+!data/regression-models-try1-rjg/*.csv
+!data/sar-diagnostics-rjg/*.csv
+!data/sar-diagnostics-rjg/*.json
+!data/sar-diagnostics-rjg/*.npy
 *shard_*.parquet
 *part_*.parquet

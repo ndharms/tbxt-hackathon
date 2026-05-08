@@ -1,0 +1,104 @@
+{
+  "n_compounds": 1599,
+  "n_pairs": 1277601,
+  "spearman_tanimoto_vs_abs_dpKD_sampled": {
+    "sample_size": 200000,
+    "rho": -0.007974632367435761,
+    "pvalue": 0.0003619209959288766
+  },
+  "global_median_abs_dpKD": 1.0329924821853638,
+  "binned_median_abs_dpKD_by_tanimoto": {
+    "0.025": {
+      "n_pairs": 3182,
+      "median_abs_dpKD": 0.9473042488098145
+    },
+    "0.075": {
+      "n_pairs": 154286,
+      "median_abs_dpKD": 1.0517804622650146
+    },
+    "0.125": {
+      "n_pairs": 496343,
+      "median_abs_dpKD": 1.0510401725769043
+    },
+    "0.175": {
+      "n_pairs": 378514,
+      "median_abs_dpKD": 1.036452054977417
+    },
+    "0.225": {
+      "n_pairs": 129423,
+      "median_abs_dpKD": 0.9872584939002991
+    },
+    "0.275": {
+      "n_pairs": 41608,
+      "median_abs_dpKD": 0.9646354913711548
+    },
+    "0.325": {
+      "n_pairs": 24556,
+      "median_abs_dpKD": 1.0293464660644531
+    },
+    "0.375": {
+      "n_pairs": 15522,
+      "median_abs_dpKD": 1.0004491806030273
+    },
+    "0.425": {
+      "n_pairs": 11388,
+      "median_abs_dpKD": 0.9437012672424316
+    },
+    "0.475": {
+      "n_pairs": 7517,
+      "median_abs_dpKD": 0.905089259147644
+    },
+    "0.525": {
+      "n_pairs": 5998,
+      "median_abs_dpKD": 0.9060300588607788
+    },
+    "0.575": {
+      "n_pairs": 3623,
+      "median_abs_dpKD": 0.9434106349945068
+    },
+    "0.625": {
+      "n_pairs": 2223,
+      "median_abs_dpKD": 0.8770298957824707
+    },
+    "0.675": {
+      "n_pairs": 1423,
+      "median_abs_dpKD": 0.9424208402633667
+    },
+    "0.725": {
+      "n_pairs": 967,
+      "median_abs_dpKD": 0.866665244102478
+    },
+    "0.775": {
+      "n_pairs": 615,
+      "median_abs_dpKD": 0.9158007502555847
+    },
+    "0.825": {
+      "n_pairs": 282,
+      "median_abs_dpKD": 0.712016224861145
+    },
+    "0.875": {
+      "n_pairs": 47,
+      "median_abs_dpKD": 1.1456820964813232
+    },
+    "0.925": {
+      "n_pairs": 13,
+      "median_abs_dpKD": 0.47231417894363403
+    },
+    "0.975": {
+      "n_pairs": 71,
+      "median_abs_dpKD": 1.0246816873550415
+    }
+  },
+  "high_similarity_pairs_tanimoto_ge_0p7": {
+    "n_pairs": 2057,
+    "n_activity_cliffs_abs_dpKD_ge_2": 636,
+    "fraction_cliffs": 0.3091881380651434
+  },
+  "knn_pKD_std_k5_morgan": {
+    "median": 1.0934128783674308,
+    "mean": 1.121899207985636,
+    "p90": 2.023702578419212,
+    "global_pKD_std": 1.6245639338188989,
+    "median_ratio_to_global": 0.6730500755344978
+  }
+}

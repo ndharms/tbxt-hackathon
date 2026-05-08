@@ -1,0 +1,129 @@
+{
+  "holdout_fold": 4,
+  "target": "pKD_global_mean",
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "val_fold": 1,
+      "train_folds": [
+        2,
+        3,
+        5
+      ],
+      "n_train": 892,
+      "n_val": 331,
+      "n_test": 245,
+      "best_iteration": 3,
+      "best_val_rmse": 1.8154638965819312,
+      "test_rmse": 1.1197733444868911,
+      "test_mae": 0.7046847561804466,
+      "test_r2": -0.007958430461543209,
+      "test_spearman": -0.011643121747443542,
+      "model_path": "data/regression-models-try1-rjg/xgb_with_val_cv_fold_0.ubj"
+    },
+    {
+      "test_fold": 1,
+      "val_fold": 2,
+      "train_folds": [
+        0,
+        3,
+        5
+      ],
+      "n_train": 967,
+      "n_val": 170,
+      "n_test": 331,
+      "best_iteration": 0,
+      "best_val_rmse": 1.7735534274165201,
+      "test_rmse": 1.8029799127176542,
+      "test_mae": 1.230873793905443,
+      "test_r2": -0.017308674943970814,
+      "test_spearman": 0.23884473998282454,
+      "model_path": "data/regression-models-try1-rjg/xgb_with_val_cv_fold_1.ubj"
+    },
+    {
+      "test_fold": 2,
+      "val_fold": 3,
+      "train_folds": [
+        0,
+        1,
+        5
+      ],
+      "n_train": 812,
+      "n_val": 486,
+      "n_test": 170,
+      "best_iteration": 7,
+      "best_val_rmse": 1.5636977861198567,
+      "test_rmse": 1.7756128980221313,
+      "test_mae": 1.1582133054634918,
+      "test_r2": -0.015922424893150877,
+      "test_spearman": -0.07519917241627687,
+      "model_path": "data/regression-models-try1-rjg/xgb_with_val_cv_fold_2.ubj"
+    },
+    {
+      "test_fold": 3,
+      "val_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2
+      ],
+      "n_train": 746,
+      "n_val": 236,
+      "n_test": 486,
+      "best_iteration": 71,
+      "best_val_rmse": 1.8344040233267116,
+      "test_rmse": 1.6369943566030523,
+      "test_mae": 1.1039604302427182,
+      "test_r2": -0.12377915776787729,
+      "test_spearman": 0.1795479074505345,
+      "model_path": "data/regression-models-try1-rjg/xgb_with_val_cv_fold_3.ubj"
+    },
+    {
+      "test_fold": 5,
+      "val_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        3
+      ],
+      "n_train": 987,
+      "n_val": 245,
+      "n_test": 236,
+      "best_iteration": 5,
+      "best_val_rmse": 1.1175892932029736,
+      "test_rmse": 1.9593166083795328,
+      "test_mae": 1.3936297507837017,
+      "test_r2": -0.21218915397179927,
+      "test_spearman": -0.14329960474574996,
+      "model_path": "data/regression-models-try1-rjg/xgb_with_val_cv_fold_5.ubj"
+    }
+  ],
+  "oof_rmse": 1.6768007260036502,
+  "oof_mae": 1.1187906289227652,
+  "oof_r2": -0.05134994494539824,
+  "oof_spearman": 0.08496964208909252,
+  "holdout_ensemble_rmse": 1.5121180706750326,
+  "holdout_ensemble_mae": 0.9733349658466238,
+  "holdout_ensemble_r2": -0.08425182430601263,
+  "holdout_ensemble_spearman": -0.00027491629065882947,
+  "feature_importance_morgan_sum": 0.9700873478333505,
+  "feature_importance_physchem": {
+    "mw": 0.0026097620371729135,
+    "logp": 0.003267035307362676,
+    "hbd": 0.0023521184455603363,
+    "hba": 0.003507393063046038,
+    "heavy_atoms": 0.003779083909466863,
+    "num_rings": 0.007643561391159892,
+    "tpsa": 0.0033633434679359196,
+    "rotatable_bonds": 0.003390348795801401
+  },
+  "config": {
+    "n_estimators": 1000,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "early_stopping_rounds": 30,
+    "subsample": 0.9,
+    "colsample_bytree": 0.6,
+    "random_state": 0
+  }
+}
