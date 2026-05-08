@@ -290,19 +290,34 @@ never seen the late-batch measurement regime that dominates fold 4.
    data-limited, not architecture-limited. Fine-tuning the encoder
    buys nothing over a simple Ridge probe because the ceiling is the
    target.
-4. **Next model iteration**: if we want to try regression again,
-   the ceiling-lifting moves are all on the data side, not the
-   architecture side:
-   - Add `reference_date` as a feature (bias term per batch) to
-     explicitly split batch from chemistry. Explain away 15 % of
-     variance for free.
-   - Filter to the 25 compounds with >= 3 replicate measurements,
-     use only the most-recent or most-consistent replicate.
-   - Treat compounds with replicate std >= 1.0 as label-noisy and
-     down-weight them in training.
-   - Use the robust hit-list / ranking framing (e.g. NLogProbEnrichment
-     or rank-based loss), not MSE regression. For hit-finding we
-     only care about top-k predictions anyway.
+4. **Next model iteration**: if we want to try regression again, the
+   ceiling-lifting moves are on the *training* side — we cannot use
+   batch as an inference-time feature, since a random onepot-library
+   molecule we score later has no `reference_date`. The model has to
+   work on chemistry alone. What batch info *can* do is improve the
+   training signal without leaking into the prediction interface:
+   - **Throw out the noisiest labels before training.** For the 65
+     compounds measured in >=2 batches, 12 % have replicate std >=
+     3.0 — effectively label noise. Drop or down-weight those rows.
+   - **Re-derive a denoised target.** Instead of the raw per-compound
+     mean across all measurements, fit a simple ANOVA-style
+     decomposition (pKD ~ compound + batch) on the 2,153 records and
+     use the compound-effect term as the regression target. This
+     soaks up batch variance at *training* time while leaving a
+     chemistry-only feature at inference time.
+   - **Filter to the compounds first measured in the wider-dynamic-range
+     assay era** (batches 20210423 onward). This gives a smaller but
+     more homogeneous training set; pKD values from the early narrow
+     era are probably misrepresented (non-binders clipped out entirely).
+   - **Switch to a ranking / hit-list framing.** For virtual screening
+     we only care about top-k predicted binders, not absolute pKD.
+     A pairwise rank loss or NLogProbEnrichment objective uses the
+     same chemistry-only features but asks the model a much easier
+     (and more useful) question than MSE regression.
+   - **Use the classifier predictions instead of regression.**
+     `chemeleon_no_val` at OOF AUROC 0.655 is already the strongest
+     signal we have; regression doesn't add anything for a ranking
+     task.
 5. **Stop chasing holdout-fold metrics.** The holdout fold is
    dominated by recent batches, so holdout performance is partly a
    batch-effect test, not an OOD-chemistry test. Using the full
