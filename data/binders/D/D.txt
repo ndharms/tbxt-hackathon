@@ -1,0 +1,2 @@
+CC(=O)c1cccc(NC(=O)N2CCOCC2)c1	NZ4
+CC(=O)c1cccc(NC(=O)N2CCOCC2)c1	NZ4
