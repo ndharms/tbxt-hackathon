@@ -1,0 +1,81 @@
+NUY
+  ModelServer 0.9.12
+
+ 16 17  0  0  0  0  0  0  0  0  0
+   27.2040    8.6680   23.1210 N   0  0  0  0  0  0  0  0  0  0  0  0
+   26.9140    7.2090   23.4320 C   0  0  0  0  0  0  0  0  0  0  0  0
+   27.0700    6.3240   22.1500 C   0  0  0  0  0  0  0  0  0  0  0  0
+   29.2030    7.5860   21.9770 C   0  0  0  0  0  0  0  0  0  0  0  0
+   28.2360    8.8270   22.0030 C   0  0  0  0  0  0  0  0  0  0  0  0
+   29.1390    5.0860   21.2450 C   0  0  0  0  0  0  0  0  0  0  0  0
+   31.6530    4.8500   20.9400 C   0  0  0  0  0  0  0  0  0  0  0  0
+   26.1590   10.7890   23.9270 C   0  0  0  0  0  0  0  0  0  0  0  0
+   32.6810    4.9180   19.9560 C   0  0  0  0  0  0  0  0  0  0  0  0
+   32.1830    5.2320   18.7650 C   0  0  0  0  0  0  0  0  0  0  0  0
+   25.9530    9.5520   23.0220 C   0  0  0  0  0  0  0  0  0  0  0  0
+   25.4900   10.0070   21.6140 C   0  0  0  0  0  0  0  0  0  0  0  0
+   30.4180    5.1190   20.4450 C   0  0  0  0  0  0  0  0  0  0  0  0
+   28.4770    6.3300   21.6190 N   0  0  0  0  0  0  0  0  0  0  0  0
+   28.6640    3.9850   21.5820 O   0  0  0  0  0  0  0  0  0  0  0  0
+   30.5230    5.4490   18.7950 S   0  0  0  0  0  0  0  0  0  0  0  0
+  1  5  1  0  0  0  0
+  1  2  1  0  0  0  0
+  1 11  1  0  0  0  0
+  2  3  1  0  0  0  0
+  3 14  1  0  0  0  0
+  4 14  1  0  0  0  0
+  4  5  1  0  0  0  0
+  6 15  2  0  0  0  0
+  6 13  1  0  0  0  0
+  6 14  1  0  0  0  0
+  7  9  1  0  0  0  0
+  7 13  2  0  0  0  0
+  8 11  1  0  0  0  0
+  9 10  2  0  0  0  0
+ 10 16  1  0  0  0  0
+ 11 12  1  0  0  0  0
+ 13 16  1  0  0  0  0
+M  END
+> <model_server_result.job_id>
+8I9olZ5wbZOelwKANZjpAg
+
+> <model_server_result.datetime_utc>
+2026-05-08 17:17:00
+
+> <model_server_result.server_version>
+0.9.12
+
+> <model_server_result.query_name>
+ligand
+
+> <model_server_result.source_id>
+pdb-bcif
+
+> <model_server_result.entry_id>
+5qri
+
+> <model_server_params.name>
+atom_site
+
+> <model_server_params.value>
+{"label_asym_id":"G","auth_seq_id":306}
+
+> <model_server_stats.io_time_ms>
+29
+
+> <model_server_stats.parse_time_ms>
+5
+
+> <model_server_stats.create_model_time_ms>
+2
+
+> <model_server_stats.query_time_ms>
+179
+
+> <model_server_stats.encode_time_ms>
+0
+
+> <model_server_stats.element_count>
+16
+
+$$$$

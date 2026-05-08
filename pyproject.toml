@@ -6,6 +6,9 @@ requires-python = ">=3.11"
 dependencies = [
     # cheminformatics
     "rdkit>=2024.3.1",
+    # structural biology
+    "biopython>=1.84",
+    "numpy>=1.26.0",
     # data
     "pandas>=2.2.0",
     "openpyxl>=3.1.0",
@@ -29,6 +32,9 @@ dependencies = [
     "typeguard>=4",
     "joblib>=1.4",
     "statsmodels>=0.14",
+    "loguru>=0.7.0",
+    "duckdb",
+    "pyarrow",
 ]
 
 [dependency-groups]

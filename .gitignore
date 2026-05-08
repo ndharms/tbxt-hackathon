@@ -22,3 +22,5 @@ build/
 !data/sar-diagnostics-rjg/*.csv
 !data/sar-diagnostics-rjg/*.json
 !data/sar-diagnostics-rjg/*.npy
+*shard_*.parquet
+*part_*.parquet
