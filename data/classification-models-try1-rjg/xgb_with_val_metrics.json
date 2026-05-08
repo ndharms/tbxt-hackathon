@@ -1,0 +1,129 @@
+{
+  "holdout_fold": 4,
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "val_fold": 1,
+      "train_folds": [
+        2,
+        3,
+        5
+      ],
+      "n_train": 892,
+      "n_val": 331,
+      "n_test": 245,
+      "pos_train": 242,
+      "pos_val": 102,
+      "pos_test": 36,
+      "best_iteration": 97,
+      "best_val_logloss": 0.5657491459317078,
+      "test_auroc": 0.6556353003721425,
+      "test_auprc": 0.27491371721581614,
+      "model_path": "data/classification-models-try1-rjg/xgb_with_val_cv_fold_0.ubj"
+    },
+    {
+      "test_fold": 1,
+      "val_fold": 2,
+      "train_folds": [
+        0,
+        3,
+        5
+      ],
+      "n_train": 967,
+      "n_val": 170,
+      "n_test": 331,
+      "pos_train": 242,
+      "pos_val": 36,
+      "pos_test": 102,
+      "best_iteration": 109,
+      "best_val_logloss": 0.525501256830552,
+      "test_auroc": 0.6498844079116363,
+      "test_auprc": 0.44234143506765866,
+      "model_path": "data/classification-models-try1-rjg/xgb_with_val_cv_fold_1.ubj"
+    },
+    {
+      "test_fold": 2,
+      "val_fold": 3,
+      "train_folds": [
+        0,
+        1,
+        5
+      ],
+      "n_train": 812,
+      "n_val": 486,
+      "n_test": 170,
+      "pos_train": 183,
+      "pos_val": 161,
+      "pos_test": 36,
+      "best_iteration": 26,
+      "best_val_logloss": 0.614000895417031,
+      "test_auroc": 0.6217868988391376,
+      "test_auprc": 0.2873899518443969,
+      "model_path": "data/classification-models-try1-rjg/xgb_with_val_cv_fold_2.ubj"
+    },
+    {
+      "test_fold": 3,
+      "val_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2
+      ],
+      "n_train": 746,
+      "n_val": 236,
+      "n_test": 486,
+      "pos_train": 174,
+      "pos_val": 45,
+      "pos_test": 161,
+      "best_iteration": 42,
+      "best_val_logloss": 0.5536835256774547,
+      "test_auroc": 0.6757859531772574,
+      "test_auprc": 0.4972547425850054,
+      "model_path": "data/classification-models-try1-rjg/xgb_with_val_cv_fold_3.ubj"
+    },
+    {
+      "test_fold": 5,
+      "val_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        3
+      ],
+      "n_train": 987,
+      "n_val": 245,
+      "n_test": 236,
+      "pos_train": 299,
+      "pos_val": 36,
+      "pos_test": 45,
+      "best_iteration": 110,
+      "best_val_logloss": 0.44881483073137246,
+      "test_auroc": 0.47859220477021525,
+      "test_auprc": 0.23785647258507328,
+      "model_path": "data/classification-models-try1-rjg/xgb_with_val_cv_fold_5.ubj"
+    }
+  ],
+  "oof_auroc": 0.6319405476006192,
+  "oof_auprc": 0.35084138621903305,
+  "holdout_ensemble_auroc": 0.4626126126126126,
+  "holdout_ensemble_auprc": 0.22258508457754822,
+  "feature_importance_morgan_sum": 0.9696454736624219,
+  "feature_importance_physchem": {
+    "mw": 0.003433497017249465,
+    "logp": 0.002903373260051012,
+    "hbd": 0.002299959515221417,
+    "hba": 0.0031766684260219336,
+    "heavy_atoms": 0.004129608534276486,
+    "num_rings": 0.009130294900387526,
+    "tpsa": 0.0031114420853555202,
+    "rotatable_bonds": 0.002169693261384964
+  },
+  "config": {
+    "n_estimators": 1000,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "early_stopping_rounds": 30,
+    "subsample": 0.9,
+    "colsample_bytree": 0.6,
+    "random_state": 0
+  }
+}

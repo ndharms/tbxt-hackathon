@@ -1,0 +1,102 @@
+{
+  "holdout_fold": 4,
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "n_train": 1223,
+      "n_test": 245,
+      "pos_train": 344,
+      "pos_test": 36,
+      "n_estimators": 100,
+      "test_auroc": 0.5744284954811271,
+      "test_auprc": 0.27016198213008735,
+      "model_path": "data/classification-models-try1-rjg/xgb_no_val_cv_fold_0.ubj"
+    },
+    {
+      "test_fold": 1,
+      "train_folds": [
+        0,
+        2,
+        3,
+        5
+      ],
+      "n_train": 1137,
+      "n_test": 331,
+      "pos_train": 278,
+      "pos_test": 102,
+      "n_estimators": 100,
+      "test_auroc": 0.6957573422382054,
+      "test_auprc": 0.5047788870845691,
+      "model_path": "data/classification-models-try1-rjg/xgb_no_val_cv_fold_1.ubj"
+    },
+    {
+      "test_fold": 2,
+      "train_folds": [
+        0,
+        1,
+        3,
+        5
+      ],
+      "n_train": 1298,
+      "n_test": 170,
+      "pos_train": 344,
+      "pos_test": 36,
+      "n_estimators": 100,
+      "test_auroc": 0.5618781094527363,
+      "test_auprc": 0.25472036696514877,
+      "model_path": "data/classification-models-try1-rjg/xgb_no_val_cv_fold_2.ubj"
+    },
+    {
+      "test_fold": 3,
+      "train_folds": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "n_train": 982,
+      "n_test": 486,
+      "pos_train": 219,
+      "pos_test": 161,
+      "n_estimators": 100,
+      "test_auroc": 0.6264309603440038,
+      "test_auprc": 0.42969457407771505,
+      "model_path": "data/classification-models-try1-rjg/xgb_no_val_cv_fold_3.ubj"
+    },
+    {
+      "test_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "n_train": 1232,
+      "n_test": 236,
+      "pos_train": 335,
+      "pos_test": 45,
+      "n_estimators": 100,
+      "test_auroc": 0.5250727166957534,
+      "test_auprc": 0.2134388302536537,
+      "model_path": "data/classification-models-try1-rjg/xgb_no_val_cv_fold_5.ubj"
+    }
+  ],
+  "oof_auroc": 0.631595878482972,
+  "oof_auprc": 0.36430132905674795,
+  "holdout_ensemble_auroc": 0.4554054054054054,
+  "holdout_ensemble_auprc": 0.21137168831822134,
+  "config": {
+    "n_estimators": 100,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "subsample": 0.9,
+    "colsample_bytree": 0.6,
+    "random_state": 0
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "holdout_fold": 4,
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "n_train": 1223,
+      "n_test": 245,
+      "pos_train": 344,
+      "pos_test": 36,
+      "epochs": 15,
+      "test_auroc": 0.5972886762360446,
+      "test_auprc": 0.2880043348786943,
+      "ckpt": "data/classification-models-try1-rjg/chemeleon_no_val_cv_fold_0.ckpt"
+    },
+    {
+      "test_fold": 1,
+      "train_folds": [
+        0,
+        2,
+        3,
+        5
+      ],
+      "n_train": 1137,
+      "n_test": 331,
+      "pos_train": 278,
+      "pos_test": 102,
+      "epochs": 15,
+      "test_auroc": 0.6694922510488912,
+      "test_auprc": 0.48749026361862713,
+      "ckpt": "data/classification-models-try1-rjg/chemeleon_no_val_cv_fold_1.ckpt"
+    },
+    {
+      "test_fold": 2,
+      "train_folds": [
+        0,
+        1,
+        3,
+        5
+      ],
+      "n_train": 1298,
+      "n_test": 170,
+      "pos_train": 344,
+      "pos_test": 36,
+      "epochs": 15,
+      "test_auroc": 0.6211650082918739,
+      "test_auprc": 0.28118423008437526,
+      "ckpt": "data/classification-models-try1-rjg/chemeleon_no_val_cv_fold_2.ckpt"
+    },
+    {
+      "test_fold": 3,
+      "train_folds": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "n_train": 982,
+      "n_test": 486,
+      "pos_train": 219,
+      "pos_test": 161,
+      "epochs": 15,
+      "test_auroc": 0.6590062111801241,
+      "test_auprc": 0.5329988800003291,
+      "ckpt": "data/classification-models-try1-rjg/chemeleon_no_val_cv_fold_3.ckpt"
+    },
+    {
+      "test_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "n_train": 1232,
+      "n_test": 236,
+      "pos_train": 335,
+      "pos_test": 45,
+      "epochs": 15,
+      "test_auroc": 0.6122164048865619,
+      "test_auprc": 0.25639942238794494,
+      "ckpt": "data/classification-models-try1-rjg/chemeleon_no_val_cv_fold_5.ckpt"
+    }
+  ],
+  "oof_auroc": 0.6551035216718267,
+  "oof_auprc": 0.4038277702942649,
+  "holdout_ensemble_auroc": 0.4747747747747748,
+  "holdout_ensemble_auprc": 0.17722484766200491,
+  "config": {
+    "hidden_dim": 256,
+    "dropout": 0.2,
+    "epochs": 15,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "random_state": 0,
+    "accelerator": "mps"
+  }
+}
