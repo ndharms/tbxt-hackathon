@@ -1,0 +1,37 @@
+{
+  "baseline": {
+    "label": "baseline",
+    "oof_auroc": 0.6319405476006192,
+    "oof_auprc": 0.35084138621903305,
+    "holdout_auroc": 0.4626126126126126,
+    "holdout_auprc": 0.22258508457754822,
+    "n_features": 2056
+  },
+  "with_pocket": {
+    "label": "+pocket",
+    "oof_auroc": 0.6007522252321982,
+    "oof_auprc": 0.3206927272308744,
+    "holdout_auroc": 0.49189189189189186,
+    "holdout_auprc": 0.22548791181870736,
+    "n_features": 2064
+  },
+  "delta_oof_auroc": -0.031188322368421062,
+  "delta_holdout_auroc": 0.029279279279279258,
+  "config": {
+    "n_estimators": 1000,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "early_stopping_rounds": 30,
+    "random_state": 0
+  },
+  "pocket_feature_columns": [
+    "pocket_A_tc",
+    "pocket_B_tc",
+    "pocket_C_tc",
+    "pocket_D_tc",
+    "pocket_A_sub",
+    "pocket_B_sub",
+    "pocket_C_sub",
+    "pocket_D_sub"
+  ]
+}
