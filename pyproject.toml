@@ -25,6 +25,8 @@ dependencies = [
     # utilities
     "tqdm>=4.66.0",
     "loguru>=0.7.0",
+    "duckdb",
+    "pyarrow",
 ]
 
 [dependency-groups]

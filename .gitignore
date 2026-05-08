@@ -16,3 +16,5 @@ build/
 !data/zenodo/tbxt_spr_merged.csv
 !data/processed/*.csv
 !data/Naar_SMILES.xlsx
+*shard_*.parquet
+*part_*.parquet
