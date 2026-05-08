@@ -16,3 +16,5 @@ build/
 !data/zenodo/tbxt_spr_merged.csv
 !data/processed/*.csv
 !data/Naar_SMILES.xlsx
+!data/folds-pacmap-kmeans6/*.csv
+!data/classification-models-try1-rjg/*.csv
