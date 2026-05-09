@@ -86,9 +86,9 @@ SGC TEP identifies 5 fragment pockets; we target **A, F, G**
 
 | TEP pocket | Anchor residues | Frags | Planned slots | QC survivors |
 |---|---|---|---|---|
-| **A / A'** | R180, V123, L91, I125, V173, I182 | 26 | 2 → 3 | **70** |
-| **G** | R54, E48, E50, L51, K76 | 10 | 1 → 0 | **0** (no pose QC) |
-| **F** | Y88, D177, V173, I182 | 4 | 1 | **7** |
+| **A / A'** | R180, V123, L91, I125, V173, I182 | 26 | 2 | **70** |
+| **G** | R54, E48, E50, L51, K76 | 10 | 1 -> 0 | **0** (no pose QC) |
+| **F** | Y88, D177, V173, I182 | 4 | 1 -> 2 | **7** |
 | ~~D~~ | G112, H100, P115 | 5 | 0 (bad Boltz pose) | — |
 
 </div>
