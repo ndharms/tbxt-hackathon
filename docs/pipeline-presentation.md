@@ -111,6 +111,42 @@ SGC TEP identifies 5 fragment pockets; we target **A, F, G**
 
 ---
 
+## Pipeline — end-to-end
+
+```
+ onepot CORE                      SGC TEP fragments
+        │                                 │
+        ▼                                 │
+ [1] Downfilter: regex → RDKit            │
+     substructure + physchem + PAINS      │
+     + risk                               │
+        │                                 ▼
+        │        [1b] onepot API neighbor queries
+        │             + physchem + PAINS + risk
+        └─────────────────┬─────────────────┘
+                          ▼
+              Combined screening library
+                          ▼
+         [2] XGBoost 12-booster ensemble → p_binder rank
+                          ▼
+         [3] Pocket-assign → split A / F / G (top 5000 each)
+                          ▼
+         [4] Diversity cluster (Morgan, Butina-style)
+                          ▼
+         [5] Boltz pose prediction + pose QC
+               (site-localization rejects ~90–95%)
+                          ▼
+         [5b] Exclude Zenodo-similar compounds
+               (ECFP4 Tanimoto > 0.85 to any SPR compound)
+                          ▼
+         [6] AutoDock Vina + anchor-residue check
+               R180 (A) · E48/R54 (G) · Y88 (F)
+                          ▼
+                 Final 4 (2·A, 1·G, 1·F)
+```
+
+---
+
 ## Modeling the Zenodo SPR data
 
 **Data:** 2,143 SPR records, 14 batches (Oct 2020 – Jan 2023), 1,545 unique compounds after cleaning.
@@ -179,44 +215,6 @@ Morgan sharpens the *very top* of the ranking but has a long right tail. MACCS+p
 </div>
 </div>
 </div>
-
----
-
-## Pipeline — end-to-end with numbers
-
-```
- onepot CORE (3.4B)                  SGC TEP fragments (45)
-        │                                      │
-        ▼                                      │
- [1] Downfilter: regex → RDKit                 │
-     substructure + physchem + PAINS + risk    │
-        │                                      │
-        ▼                                      ▼
-   897,431 survivors     [1b] onepot API neighbor queries
-        │                     + physchem + PAINS + risk
-        │                     51,560 unique compounds
-        └──────────────┬─────────────────────────┘
-                       ▼
-         Combined screening library: 178,332
-                       ▼
-        [2] XGBoost 12-booster ensemble → p_binder rank
-                       ▼
-        [3] Pocket-assign → split A / F / G (top 5000 each)
-                       ▼
-        [4] Diversity cluster (Morgan, Butina-style)
-                       ▼
-        [5] Boltz pose prediction + pose QC
-              (site-localization rejects ~90–95%)
-              survivors: <100 per pocket
-                       ▼
-        [5b] Exclude Zenodo-similar compounds
-              (ECFP4 Tanimoto > 0.85 to any SPR compound)
-                       ▼
-        [6] AutoDock Vina + anchor-residue check
-              R180 (A) · E48/R54 (G) · Y88 (F)
-                       ▼
-                Final 4 (2·A, 1·G, 1·F)
-```
 
 ---
 
@@ -514,13 +512,20 @@ Fail the anchor check → drop regardless of Vina score.
 
 | Stage | Output |
 |---|---|
-| Downfilter | 897,431 |
+| onepot CORE | 3.4B |
+| Downfilter survivors | 897,431 |
 | API neighbors (unique) | 51,560 |
-| **Combined library** | **178,332** |
+| **Combined library** | **?** |
 | Top per pocket (pre-cluster) | 5000 |
 | Boltz survivors (site-QC rejects ~90–95%) | <100 per pocket |
 | After Vina + anchor | final per-pocket shortlist |
 | **Submission** | **4** |
+
+<div class="small">
+
+*Combined library count needs verification — downfilter output + API-neighbor unique compounds don't sum cleanly to the CSV row count.*
+
+</div>
 
 </div>
 </div>
