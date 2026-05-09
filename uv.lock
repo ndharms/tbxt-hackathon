@@ -2644,6 +2644,18 @@ wheels = [
 ]
 
 [[package]]
+name = "onepot"
+version = "0.1.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "httpx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7a/a8/a822eef7431757a1721b856397e3709575e6d5728e11809c6eb7e78b54d6/onepot-0.1.6.tar.gz", hash = "sha256:140eccd0320f8b7255b0034a7ccaa70960597f3260744a16f19835395e420232", size = 3358, upload-time = "2026-04-03T01:29:19.329Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b3/4f/33bc46ce22a5750f59f44f01b5f508dc2dca64284cb98bbeed65e6e3b010/onepot-0.1.6-py3-none-any.whl", hash = "sha256:f4fe2dae5b628e47ddcaeab855cb170e080ec7650ecc7d59a8c3e9392d10014f", size = 4425, upload-time = "2026-04-03T01:29:20.254Z" },
+]
+
+[[package]]
 name = "openpyxl"
 version = "3.1.5"
 source = { registry = "https://pypi.org/simple" }
@@ -3958,6 +3970,7 @@ dependencies = [
     { name = "meeko" },
     { name = "msoffcrypto-tool" },
     { name = "numpy" },
+    { name = "onepot" },
     { name = "openpyxl" },
     { name = "optuna" },
     { name = "pacmap" },
@@ -3995,6 +4008,7 @@ requires-dist = [
     { name = "meeko", specifier = ">=0.6" },
     { name = "msoffcrypto-tool", specifier = ">=5.4.0" },
     { name = "numpy", specifier = ">=1.26.0" },
+    { name = "onepot", specifier = ">=0.1.6" },
     { name = "openpyxl", specifier = ">=3.1.0" },
     { name = "optuna", specifier = ">=4.8.0" },
     { name = "pacmap", specifier = ">=0.7" },

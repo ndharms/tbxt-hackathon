@@ -41,6 +41,7 @@ dependencies = [
     "pyarrow",
     "optuna>=4.8.0",
     "umap-learn>=0.5.12",
+    "onepot>=0.1.6",
 ]
 
 [dependency-groups]
