@@ -23,6 +23,8 @@ build/
 !data/sar-diagnostics-rjg/*.json
 !data/sar-diagnostics-rjg/*.npy
 !data/structures/*.csv
+!data/onepot_neighbors_all_matches.csv
+!data/onepot_neighbors_assigned.csv
 *shard_*.parquet
 *part_*.parquet
 
