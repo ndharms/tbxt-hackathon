@@ -22,6 +22,7 @@ See scripts/downfilter_onepot/README.md for full documentation.
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 import os
 import re
@@ -64,6 +65,11 @@ HEAVY_MAX = 30
 NUM_RINGS_MAX = 5
 NUM_FUSED_RINGS_MAX = 2
 
+# ---------- Fragment-substructure gate ----------
+# A row is kept iff its compound Mol contains at least one fragment Mol
+# as an RDKit substructure (HasSubstructMatch). Strict, deterministic,
+# no threshold. Tightest of the gating options we've tried.
+
 # ---------- Custom problematic motifs (annotated, then used to drop) ----------
 # Names match the brief's "avoid" list. PAINS_A/B/C are added separately via
 # RDKit's FilterCatalog.
@@ -92,6 +98,42 @@ logging.basicConfig(
 log = logging.getLogger("downfilter")
 
 
+# ---------- Checkpoint (auto-resume after OOM / interrupt) ----------
+CHECKPOINT_FILE_NAME = "checkpoint.json"
+
+
+def write_checkpoint(shard_dir: Path, raw_rows_scanned: int,
+                     parts_written: int) -> None:
+    """Write checkpoint.json after each rollup boundary so a crashed run
+    can resume from the last completed window without recomputing."""
+    cp = shard_dir / CHECKPOINT_FILE_NAME
+    payload = {
+        "raw_rows_scanned": int(raw_rows_scanned),
+        "parts_written": int(parts_written),
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+    }
+    tmp = cp.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(payload, indent=2))
+    tmp.replace(cp)  # atomic rename so we never see a half-written file
+
+
+def read_checkpoint(shard_dir: Path) -> dict | None:
+    cp = shard_dir / CHECKPOINT_FILE_NAME
+    if not cp.exists():
+        return None
+    try:
+        return json.loads(cp.read_text())
+    except Exception as e:  # noqa: BLE001
+        log.warning("Could not read %s: %s — starting fresh", cp, e)
+        return None
+
+
+def clear_checkpoint(shard_dir: Path) -> None:
+    cp = shard_dir / CHECKPOINT_FILE_NAME
+    if cp.exists():
+        cp.unlink()
+
+
 # ============================================================
 # Fragment loading + LIKE-pattern generation (main process)
 # ============================================================
@@ -106,11 +148,49 @@ class Fragment:
 
 
 def load_fragments(csv_path: Path) -> list[Fragment]:
+    """Load fragments from CSV. Accepts either schema:
+
+    NEW: ``pocket, pdb_id, [ligand_id,] smiles``
+        - frag_id is derived as ``<pdb_id>_<ligand_id>`` (or ``<pdb_id>`` alone).
+        - ``pocket`` is treated as the site label.
+        - Duplicate frag_id rows (e.g. one chemistry across two pockets) are
+          merged; their pocket labels are joined with ``|``.
+
+    OLD: ``frag_id, site, smiles[, pdb_id, vendor_code]``
+        - Used as-is.
+    """
     df = pd.read_csv(csv_path)
-    required = {"frag_id", "site", "smiles"}
-    missing = required - set(df.columns)
-    if missing:
-        raise SystemExit(f"{csv_path} missing required columns: {missing}")
+    cols = set(df.columns)
+
+    if {"pocket", "pdb_id", "smiles"} <= cols:
+        # New schema. Build frag_id from pdb_id + ligand_id (if present).
+        if "ligand_id" in cols:
+            df["frag_id"] = (
+                df["pdb_id"].astype(str) + "_" + df["ligand_id"].astype(str)
+            )
+        else:
+            df["frag_id"] = df["pdb_id"].astype(str)
+        df = df.rename(columns={"pocket": "site"})
+    elif {"frag_id", "site", "smiles"} <= cols:
+        pass  # old schema, no transformation needed
+    else:
+        raise SystemExit(
+            f"{csv_path} unrecognized schema. Expected either "
+            "{pocket, pdb_id, smiles} (new) or {frag_id, site, smiles} (old). "
+            f"Got columns: {sorted(cols)}"
+        )
+
+    # Merge duplicate frag_ids (one chemistry annotated at multiple pockets).
+    # Join their site labels with '|' so the worker's site-splitter picks them up.
+    if df["frag_id"].duplicated().any():
+        agg = {
+            "site": lambda s: "|".join(sorted({str(x) for x in s})),
+            "smiles": "first",
+        }
+        if "pdb_id" in df.columns:
+            agg["pdb_id"] = "first"
+        df = df.groupby("frag_id", as_index=False).agg(agg)
+
     out: list[Fragment] = []
     for _, row in df.iterrows():
         smi = str(row["smiles"]).strip()
@@ -119,7 +199,9 @@ def load_fragments(csv_path: Path) -> list[Fragment]:
             continue
         mol = Chem.MolFromSmiles(smi)
         if mol is None:
-            raise SystemExit(f"Cannot parse fragment SMILES for {row['frag_id']}: {smi}")
+            raise SystemExit(
+                f"Cannot parse fragment SMILES for {row['frag_id']}: {smi}"
+            )
         out.append(
             Fragment(
                 frag_id=str(row["frag_id"]),
@@ -205,9 +287,30 @@ def compile_prefilter_re(like_patterns: list[str]) -> re.Pattern | None:
     return re.compile("|".join(re.escape(p) for p in like_patterns))
 
 
+def source_table_function(source: str, *, parallel_csv: bool = True) -> str:
+    """Return a DuckDB table-function expression for the given source.
+
+    Dispatches on file extension:
+      - .parquet / .pq  -> read_parquet
+      - everything else -> read_csv_auto  (DuckDB auto-detects .csv.gz)
+
+    The CSV branch accepts a `parallel_csv` flag we set to False in the
+    streaming pipeline so rows arrive in source-file order (rollup
+    boundaries depend on this).
+    """
+    src_sql = source.replace("'", "''")
+    lower = source.lower()
+    if lower.endswith(".parquet") or lower.endswith(".pq"):
+        return f"read_parquet('{src_sql}')"
+    extras = "sample_size=10000"
+    if not parallel_csv:
+        extras += ", parallel=false"
+    return f"read_csv_auto('{src_sql}', {extras})"
+
+
 def detect_smiles_column(con: duckdb.DuckDBPyConnection, source: str) -> str:
     desc = con.sql(
-        f"DESCRIBE SELECT * FROM read_csv_auto('{source}', sample_size=10000)"
+        f"DESCRIBE SELECT * FROM {source_table_function(source, parallel_csv=True)}"
     ).fetchall()
     cols = [r[0] for r in desc]
     candidates = [c for c in cols if "smi" in c.lower()]
@@ -307,7 +410,7 @@ def _process_chunk(payload: tuple[int, list[dict]]) -> tuple[int, pd.DataFrame, 
 
     survivors: list[dict] = []
     stats = {"in": len(rows), "no_parse": 0, "fail_physchem": 0, "fail_pains": 0,
-             "fail_custom": 0, "no_fragment_match": 0, "out": 0}
+             "fail_custom": 0, "fail_fragment_match": 0, "out": 0}
 
     for row in rows:
         smi = row.get(smiles_col)
@@ -335,14 +438,15 @@ def _process_chunk(payload: tuple[int, list[dict]]) -> tuple[int, pd.DataFrame, 
             stats["fail_custom"] += 1
             continue
 
-        # fragment substructure annotation
+        # Fragment-substructure gate. Strict RDKit HasSubstructMatch of the
+        # compound against each fragment Mol. Drop if no fragment matches.
         any_hit = False
         sites_hit: set[str] = set()
         frag_cols: dict[str, bool] = {}
         for f in fragments:
-            h = mol.HasSubstructMatch(f.mol)
-            frag_cols[f"frag_{f.frag_id}"] = h
-            if h:
+            hit = mol.HasSubstructMatch(f.mol)
+            frag_cols[f"frag_{f.frag_id}"] = hit
+            if hit:
                 any_hit = True
                 # split on '|' so a dual-located fragment annotates both sites
                 for s in f.site.split("|"):
@@ -351,7 +455,7 @@ def _process_chunk(payload: tuple[int, list[dict]]) -> tuple[int, pd.DataFrame, 
                         sites_hit.add(s)
 
         if not any_hit:
-            stats["no_fragment_match"] += 1
+            stats["fail_fragment_match"] += 1
             continue
 
         out_row = dict(row)  # original cols
@@ -391,8 +495,10 @@ def rollup_to_part(shard_dir: Path, part_idx: int) -> int:
     cat_con = duckdb.connect()
     glob_path = str(shard_dir / "shard_*.parquet").replace("'", "''")
     out_path = str(part_path).replace("'", "''")
+    # union_by_name=true tolerates per-shard schema drift (e.g. fragment-id
+    # column-set changes mid-run). Missing columns fill with NULL.
     cat_con.execute(
-        f"COPY (SELECT * FROM read_parquet('{glob_path}')) "
+        f"COPY (SELECT * FROM read_parquet('{glob_path}', union_by_name=true)) "
         f"TO '{out_path}' (FORMAT PARQUET);"
     )
     n = cat_con.execute(
@@ -419,11 +525,16 @@ def concat_to_final(shard_dir: Path, final_file: Path) -> int | None:
     sources: list[str] = []
     if parts:
         glob = str(shard_dir / "part_*.parquet").replace("'", "''")
-        sources.append(f"SELECT * FROM read_parquet('{glob}')")
+        sources.append(
+            f"SELECT * FROM read_parquet('{glob}', union_by_name=true)"
+        )
     if stragglers:
         glob = str(shard_dir / "shard_*.parquet").replace("'", "''")
-        sources.append(f"SELECT * FROM read_parquet('{glob}')")
-    union = " UNION ALL ".join(sources)
+        sources.append(
+            f"SELECT * FROM read_parquet('{glob}', union_by_name=true)"
+        )
+    # UNION ALL BY NAME aligns columns across the parts/shards groups too.
+    union = " UNION ALL BY NAME ".join(sources)
     out_path = str(final_file).replace("'", "''")
     con.execute(f"COPY ({union}) TO '{out_path}' (FORMAT PARQUET);")
     n = con.execute(f"SELECT count(*) FROM read_parquet('{out_path}')").fetchone()[0]
@@ -450,6 +561,26 @@ def main() -> int:
                     help="Stop after N RAW OnePot rows scanned (for smoke tests).")
     ap.add_argument("--rollup-every-raw", type=int, default=5_000_000,
                     help="Roll up shards into a part file every N raw rows scanned.")
+    ap.add_argument("--skip-rows", type=int, default=0,
+                    help="Skip the first N raw rows from the source. Use to "
+                         "resume after an interrupted run; pair with --start-part.")
+    ap.add_argument("--start-part", type=int, default=0,
+                    help="Start the part-file counter at this index instead of 0. "
+                         "Use to avoid clobbering part_NNN.parquet from a prior run.")
+    ap.add_argument("--duckdb-memory-limit", default=None,
+                    help="Optional cap on DuckDB's memory pool (e.g. '8GB'). "
+                         "If unset, DuckDB uses its default (~80%% of system "
+                         "RAM). The gzip-CSV reader tends to OOM after several "
+                         "hundred million rows regardless — auto-checkpoint "
+                         "lets you resume.")
+    ap.add_argument("--duckdb-temp-dir", default=None,
+                    help="Spill directory for DuckDB. Only honored if "
+                         "--duckdb-memory-limit is set. Default: "
+                         "<shard_dir>/../.duckdb_tmp")
+    ap.add_argument("--no-resume", action="store_true",
+                    help="Ignore any existing checkpoint.json and start at "
+                         "row 0. Use when intentionally restarting from "
+                         "scratch (otherwise the script auto-resumes).")
     ap.add_argument("--no-prefilter", action="store_true",
                     help="Disable LIKE prefilter (sends every row through RDKit).")
     ap.add_argument("--probe-only", action="store_true",
@@ -485,9 +616,39 @@ def main() -> int:
     con = duckdb.connect()
     con.execute("INSTALL httpfs; LOAD httpfs;")
     con.execute("SET preserve_insertion_order=false;")
+    con.execute("SET threads=1;")  # CSV streaming doesn't benefit from parallelism
+    if args.duckdb_memory_limit:
+        con.execute(f"SET memory_limit='{args.duckdb_memory_limit}';")
+        if args.duckdb_temp_dir:
+            tmp_dir = Path(args.duckdb_temp_dir)
+        else:
+            tmp_dir = Path(args.shard_dir).parent / ".duckdb_tmp"
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        tmp_dir_sql = str(tmp_dir).replace("'", "''")
+        con.execute(f"SET temp_directory='{tmp_dir_sql}';")
+        log.info("DuckDB memory_limit=%s, temp_directory=%s",
+                 args.duckdb_memory_limit, tmp_dir)
+    else:
+        log.info("DuckDB memory_limit: not set (using DuckDB default ~80%% of RAM)")
 
     smiles_col = detect_smiles_column(con, args.source)
     log.info("Detected SMILES column: %s", smiles_col)
+
+    # Auto-resume from checkpoint unless caller passed --no-resume or already
+    # specified --skip-rows / --start-part explicitly.
+    if (not args.no_resume
+            and args.skip_rows == 0
+            and args.start_part == 0):
+        cp = read_checkpoint(shard_dir)
+        if cp:
+            args.skip_rows = int(cp.get("raw_rows_scanned", 0))
+            args.start_part = int(cp.get("parts_written", 0))
+            log.info(
+                "Auto-resuming from checkpoint (written %s): "
+                "skip-rows=%s, start-part=%s",
+                cp.get("timestamp", "unknown"),
+                f"{args.skip_rows:,}", args.start_part,
+            )
 
     if args.probe_only:
         print(f"\nSMILES column: {smiles_col}")
@@ -498,12 +659,33 @@ def main() -> int:
         print(f"\nSQL-form WHERE clause length: {len(sql_form)} chars (display only)")
         return 0
 
+    # Clean up stale shard files from a previous run. Shards are transient
+    # (deleted at each rollup boundary), so any leftovers here are partial
+    # work from a crashed run. They may also have an outdated fragment
+    # column set, which would break the upcoming rollup. Safer to discard.
+    stale_shards = sorted(shard_dir.glob("shard_*.parquet"))
+    if stale_shards:
+        log.info(
+            "Removing %d stale shard files from a previous run "
+            "(part_*.parquet are kept).",
+            len(stale_shards),
+        )
+        for p in stale_shards:
+            p.unlink()
+
     # No WHERE in SQL: we filter in Python so raw rows are visible to the counter.
-    # parallel=false keeps source-order streaming — useful for predictable rollups.
-    sql = (
-        f"SELECT * FROM read_csv_auto('{args.source}', sample_size=10000, "
-        f"parallel=false)"
-    )
+    # For CSV sources, parallel=false keeps source-order streaming. For
+    # Parquet sources, source_table_function emits read_parquet which is
+    # already row-group ordered.
+    sql = f"SELECT * FROM {source_table_function(args.source, parallel_csv=False)}"
+    # Push --skip-rows into SQL OFFSET.
+    #   - CSV / .csv.gz: DuckDB still has to decompress / line-count from
+    #     byte 0 (gzip is non-seekable; CSV has no row index), so OFFSET is
+    #     O(skip).
+    #   - Parquet: DuckDB uses row group metadata to skip past whole groups
+    #     without reading them, so OFFSET is effectively O(1).
+    if args.skip_rows > 0:
+        sql += f" OFFSET {args.skip_rows}"
     if args.limit:
         sql += f" LIMIT {args.limit}"
     rel = con.execute(sql)
@@ -517,12 +699,29 @@ def main() -> int:
     prefilter_passing = 0
     survivors_total = 0
     shards_written = 0
-    parts_written = 0
+    parts_written = args.start_part
     cumulative = {k: 0 for k in
                   ("in", "no_parse", "fail_physchem", "fail_pains",
-                   "fail_custom", "no_fragment_match", "out")}
+                   "fail_custom", "fail_fragment_match", "out")}
     next_rollup = args.rollup_every_raw
     last_log_raw = 0
+
+    # Resume bookkeeping. SQL-side OFFSET has already absorbed --skip-rows;
+    # the first chunk we fetch will logically start at row args.skip_rows,
+    # so seed the counters accordingly. DuckDB will silently fast-forward
+    # through the skipped slice before the first chunk arrives — expect a
+    # long initial pause with no log output.
+    if args.skip_rows > 0:
+        log.info(
+            "Resuming with SQL OFFSET %s; DuckDB is fast-forwarding "
+            "through the skipped slice. First chunk may take a while.",
+            f"{args.skip_rows:,}",
+        )
+        raw_rows_scanned = args.skip_rows
+        last_log_raw = args.skip_rows
+        next_rollup = (
+            (args.skip_rows // args.rollup_every_raw) + 1
+        ) * args.rollup_every_raw
 
     bid = 0
     in_flight: set = set()
@@ -555,6 +754,9 @@ def main() -> int:
         n = rollup_to_part(shard_dir, parts_written)
         if n > 0:
             parts_written += 1
+        # Persist a checkpoint after every rollup so a future OOM or
+        # ungraceful exit can resume from this exact boundary.
+        write_checkpoint(shard_dir, raw_rows_scanned, parts_written)
 
     interrupted = False
     try:
@@ -638,6 +840,12 @@ def main() -> int:
 
     # Concat all parts (+ any straggler shards) into the final file.
     concat_to_final(shard_dir, final_file)
+
+    # Clear the checkpoint only on a clean (non-interrupted) finish so a
+    # subsequent run starts fresh. On interrupt, the checkpoint stays so
+    # the user can resume.
+    if not interrupted:
+        clear_checkpoint(shard_dir)
 
     return 130 if interrupted else 0
 

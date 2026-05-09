@@ -22,5 +22,16 @@ build/
 !data/sar-diagnostics-rjg/*.csv
 !data/sar-diagnostics-rjg/*.json
 !data/sar-diagnostics-rjg/*.npy
+!data/structures/*.csv
 *shard_*.parquet
 *part_*.parquet
+
+# Large external / generated artifacts (regenerable; not for source control)
+data/external/
+data/processed/onepot_focused_vl.parquet
+data/processed/onepot_focused_vl/
+logs/
+.duckdb_tmp/
+
+# Local agent-mode session state
+.claude/
