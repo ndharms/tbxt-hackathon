@@ -39,6 +39,8 @@ dependencies = [
     "loguru>=0.7.0",
     "duckdb",
     "pyarrow",
+    "optuna>=4.8.0",
+    "umap-learn>=0.5.12",
 ]
 
 [dependency-groups]
