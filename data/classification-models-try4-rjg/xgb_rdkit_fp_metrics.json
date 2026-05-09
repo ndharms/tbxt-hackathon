@@ -1,0 +1,113 @@
+{
+  "variant": "rdkit_fp",
+  "holdout_fold": 3,
+  "n_features": 2048,
+  "feature_groups": {
+    "fingerprint": [
+      0,
+      2048
+    ],
+    "pocket": null,
+    "physchem": null
+  },
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "n_train": 410,
+      "n_test": 112,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.4575471698113207,
+      "test_auprc": 0.05533760605691552,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_cv_fold_0.ubj"
+    },
+    {
+      "test_fold": 1,
+      "train_folds": [
+        0,
+        2,
+        4,
+        5
+      ],
+      "n_train": 377,
+      "n_test": 145,
+      "pos_train": 19,
+      "pos_test": 39,
+      "test_auroc": 0.6441702951136914,
+      "test_auprc": 0.3673375335939282,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_cv_fold_1.ubj"
+    },
+    {
+      "test_fold": 2,
+      "train_folds": [
+        0,
+        1,
+        4,
+        5
+      ],
+      "n_train": 444,
+      "n_test": 78,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.5347222222222222,
+      "test_auprc": 0.12519400352733684,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_cv_fold_2.ubj"
+    },
+    {
+      "test_fold": 4,
+      "train_folds": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "n_train": 460,
+      "n_test": 62,
+      "pos_train": 57,
+      "pos_test": 1,
+      "test_auroc": 0.2295081967213115,
+      "test_auprc": 0.020833333333333332,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_cv_fold_4.ubj"
+    },
+    {
+      "test_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "n_train": 397,
+      "n_test": 125,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.619047619047619,
+      "test_auprc": 0.13847402597402597,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_cv_fold_5.ubj"
+    }
+  ],
+  "oof_auroc": 0.6996878715814506,
+  "oof_auprc": 0.25007388843596046,
+  "holdout_ensemble_auroc": 0.7943114430046124,
+  "holdout_ensemble_auprc": 0.3811841744074701,
+  "feature_importance_group_gain_sum": {
+    "fingerprint": 0.9999999973340067
+  },
+  "feature_importance_group_share": {
+    "fingerprint": 1.0
+  },
+  "config": {
+    "n_estimators": 61,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "subsample": 0.9,
+    "colsample_bytree": 0.6,
+    "random_state": 0
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "variant": "maccs_fp",
+  "holdout_fold": 3,
+  "n_features": 167,
+  "feature_groups": {
+    "fingerprint": [
+      0,
+      167
+    ],
+    "pocket": null,
+    "physchem": null
+  },
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "n_train": 410,
+      "n_test": 112,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.7311320754716981,
+      "test_auprc": 0.14907859475528648,
+      "model_path": "data/classification-models-try4-rjg/xgb_maccs_fp_cv_fold_0.ubj"
+    },
+    {
+      "test_fold": 1,
+      "train_folds": [
+        0,
+        2,
+        4,
+        5
+      ],
+      "n_train": 377,
+      "n_test": 145,
+      "pos_train": 19,
+      "pos_test": 39,
+      "test_auroc": 0.5742622157716498,
+      "test_auprc": 0.3283178550082266,
+      "model_path": "data/classification-models-try4-rjg/xgb_maccs_fp_cv_fold_1.ubj"
+    },
+    {
+      "test_fold": 2,
+      "train_folds": [
+        0,
+        1,
+        4,
+        5
+      ],
+      "n_train": 444,
+      "n_test": 78,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.6064814814814815,
+      "test_auprc": 0.11992204655248133,
+      "model_path": "data/classification-models-try4-rjg/xgb_maccs_fp_cv_fold_2.ubj"
+    },
+    {
+      "test_fold": 4,
+      "train_folds": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "n_train": 460,
+      "n_test": 62,
+      "pos_train": 57,
+      "pos_test": 1,
+      "test_auroc": 0.9836065573770492,
+      "test_auprc": 0.5,
+      "model_path": "data/classification-models-try4-rjg/xgb_maccs_fp_cv_fold_4.ubj"
+    },
+    {
+      "test_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "n_train": 397,
+      "n_test": 125,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.7303921568627451,
+      "test_auprc": 0.2744973384685523,
+      "model_path": "data/classification-models-try4-rjg/xgb_maccs_fp_cv_fold_5.ubj"
+    }
+  ],
+  "oof_auroc": 0.6987031807372177,
+  "oof_auprc": 0.20894657957039892,
+  "holdout_ensemble_auroc": 0.7907972765209751,
+  "holdout_ensemble_auprc": 0.4141982875267512,
+  "feature_importance_group_gain_sum": {
+    "fingerprint": 1.0000000025655027
+  },
+  "feature_importance_group_share": {
+    "fingerprint": 1.0
+  },
+  "config": {
+    "n_estimators": 61,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "subsample": 0.9,
+    "colsample_bytree": 0.6,
+    "random_state": 0
+  }
+}

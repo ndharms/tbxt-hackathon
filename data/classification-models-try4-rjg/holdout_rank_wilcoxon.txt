@@ -1,0 +1,42 @@
+Paired Wilcoxon signed-rank, n_positives = 29, 36 pairs (9 variants choose 2).
+alpha = 0.05 (uncorrected); Bonferroni = 0.05 / 36 = 0.0014.
+
+group1                       group2                        median_diff     w_stat          p   sig  bonf
+morgan_fp                    morgan_fp_pocket                   0.0000    179.500     0.8193    no    no
+morgan_fp                    morgan_fp_pocket_phys              0.0324    148.500     0.3304    no    no
+morgan_fp                    rdkit_fp                          -0.0324    211.500     0.8968    no    no
+morgan_fp                    rdkit_fp_pocket                   -0.0568    178.000     0.5691    no    no
+morgan_fp                    rdkit_fp_pocket_phys              -0.0162    212.500     0.9139    no    no
+morgan_fp                    maccs_fp                           0.0324    186.500     0.5026    no    no
+morgan_fp                    maccs_fp_pocket                   -0.0216    213.000     0.9225    no    no
+morgan_fp                    maccs_fp_pocket_phys               0.0973    156.000     0.1836    no    no
+morgan_fp_pocket             morgan_fp_pocket_phys              0.0216    149.500     0.2230    no    no
+morgan_fp_pocket             rdkit_fp                           0.0162    175.500     0.3636    no    no
+morgan_fp_pocket             rdkit_fp_pocket                   -0.0432    201.500     0.7293    no    no
+morgan_fp_pocket             rdkit_fp_pocket_phys               0.0324    169.000     0.2943    no    no
+morgan_fp_pocket             maccs_fp                           0.0432    148.000     0.1328    no    no
+morgan_fp_pocket             maccs_fp_pocket                   -0.0216    205.000     0.7869    no    no
+morgan_fp_pocket             maccs_fp_pocket_phys               0.0757    132.000     0.0645    no    no
+morgan_fp_pocket_phys        rdkit_fp                          -0.0216    215.000     0.9569    no    no
+morgan_fp_pocket_phys        rdkit_fp_pocket                   -0.0270    175.000     0.3580    no    no
+morgan_fp_pocket_phys        rdkit_fp_pocket_phys              -0.0378    210.000     0.8711    no    no
+morgan_fp_pocket_phys        maccs_fp                          -0.0135    195.000     0.8554    no    no
+morgan_fp_pocket_phys        maccs_fp_pocket                   -0.0270    182.000     0.4427    no    no
+morgan_fp_pocket_phys        maccs_fp_pocket_phys               0.0622    152.500     0.1598    no    no
+rdkit_fp                     rdkit_fp_pocket                   -0.0270    129.000     0.0919    no    no
+rdkit_fp                     rdkit_fp_pocket_phys               0.0054    196.500     0.8823    no    no
+rdkit_fp                     maccs_fp                           0.0162    197.500     0.9003    no    no
+rdkit_fp                     maccs_fp_pocket                   -0.0108    194.500     0.6189    no    no
+rdkit_fp                     maccs_fp_pocket_phys               0.0541    163.500     0.2428    no    no
+rdkit_fp_pocket              rdkit_fp_pocket_phys               0.0324    159.500     0.2096    no    no
+rdkit_fp_pocket              maccs_fp                          -0.0108    205.000     0.7869    no    no
+rdkit_fp_pocket              maccs_fp_pocket                    0.0108    202.500     0.7457    no    no
+rdkit_fp_pocket              maccs_fp_pocket_phys               0.0730    142.500     0.1048    no    no
+rdkit_fp_pocket_phys         maccs_fp                           0.0108    196.500     0.6497    no    no
+rdkit_fp_pocket_phys         maccs_fp_pocket                    0.0324    180.500     0.8381    no    no
+rdkit_fp_pocket_phys         maccs_fp_pocket_phys               0.0595    156.500     0.1871    no    no
+maccs_fp                     maccs_fp_pocket                   -0.0216    189.000     0.5376    no    no
+maccs_fp                     maccs_fp_pocket_phys               0.0378    137.500     0.1358    no    no
+maccs_fp_pocket              maccs_fp_pocket_phys               0.0486    136.000     0.0780    no    no
+
+Summary: 0/36 pairs p < 0.05 (uncorrected), 0/36 pass Bonferroni.

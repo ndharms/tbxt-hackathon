@@ -1,0 +1,119 @@
+{
+  "morgan_fp": {
+    "fp_type": "morgan",
+    "featset": "fp",
+    "n_features": 2048,
+    "oof_auroc": 0.5742791319857313,
+    "oof_auprc": 0.14348784935828457,
+    "holdout_ensemble_auroc": 0.7719086316714254,
+    "holdout_ensemble_auprc": 0.46422641697847455,
+    "feature_importance_group_share": {
+      "fingerprint": 1.0
+    }
+  },
+  "morgan_fp_pocket": {
+    "fp_type": "morgan",
+    "featset": "fp_pocket",
+    "n_features": 2056,
+    "oof_auroc": 0.5463547859690845,
+    "oof_auprc": 0.13581045095067418,
+    "holdout_ensemble_auroc": 0.7312760817043708,
+    "holdout_ensemble_auprc": 0.42664380434304233,
+    "feature_importance_group_share": {
+      "fingerprint": 0.9737495282786406,
+      "pocket": 0.026250471721359404
+    }
+  },
+  "morgan_fp_pocket_phys": {
+    "fp_type": "morgan",
+    "featset": "fp_pocket_phys",
+    "n_features": 2064,
+    "oof_auroc": 0.5353002378121284,
+    "oof_auprc": 0.137105804491798,
+    "holdout_ensemble_auroc": 0.780803865583132,
+    "holdout_ensemble_auprc": 0.42979010372181564,
+    "feature_importance_group_share": {
+      "fingerprint": 0.9336239871551794,
+      "pocket": 0.02662827244832056,
+      "physchem": 0.039747740396500225
+    }
+  },
+  "rdkit_fp": {
+    "fp_type": "rdkit_path",
+    "featset": "fp",
+    "n_features": 2048,
+    "oof_auroc": 0.6996878715814506,
+    "oof_auprc": 0.25007388843596046,
+    "holdout_ensemble_auroc": 0.7943114430046124,
+    "holdout_ensemble_auprc": 0.3811841744074701,
+    "feature_importance_group_share": {
+      "fingerprint": 1.0
+    }
+  },
+  "rdkit_fp_pocket": {
+    "fp_type": "rdkit_path",
+    "featset": "fp_pocket",
+    "n_features": 2056,
+    "oof_auroc": 0.6349212247324614,
+    "oof_auprc": 0.19661946610326483,
+    "holdout_ensemble_auroc": 0.7624643092466507,
+    "holdout_ensemble_auprc": 0.311131901466494,
+    "feature_importance_group_share": {
+      "fingerprint": 0.9920394690884844,
+      "pocket": 0.007960530911515749
+    }
+  },
+  "rdkit_fp_pocket_phys": {
+    "fp_type": "rdkit_path",
+    "featset": "fp_pocket_phys",
+    "n_features": 2064,
+    "oof_auroc": 0.7297859690844233,
+    "oof_auprc": 0.2414904135290042,
+    "holdout_ensemble_auroc": 0.7943114430046124,
+    "holdout_ensemble_auprc": 0.3656076912248682,
+    "feature_importance_group_share": {
+      "fingerprint": 0.9710288728430636,
+      "pocket": 0.010503771948549928,
+      "physchem": 0.018467355208386545
+    }
+  },
+  "maccs_fp": {
+    "fp_type": "maccs",
+    "featset": "fp",
+    "n_features": 167,
+    "oof_auroc": 0.6987031807372177,
+    "oof_auprc": 0.20894657957039892,
+    "holdout_ensemble_auroc": 0.7907972765209751,
+    "holdout_ensemble_auprc": 0.4141982875267512,
+    "feature_importance_group_share": {
+      "fingerprint": 1.0
+    }
+  },
+  "maccs_fp_pocket": {
+    "fp_type": "maccs",
+    "featset": "fp_pocket",
+    "n_features": 175,
+    "oof_auroc": 0.7097019916765755,
+    "oof_auprc": 0.2357069912002409,
+    "holdout_ensemble_auroc": 0.7699319130243795,
+    "holdout_ensemble_auprc": 0.4384988606179016,
+    "feature_importance_group_share": {
+      "fingerprint": 0.9364001296168906,
+      "pocket": 0.06359987038310937
+    }
+  },
+  "maccs_fp_pocket_phys": {
+    "fp_type": "maccs",
+    "featset": "fp_pocket_phys",
+    "n_features": 183,
+    "oof_auroc": 0.6302021403091558,
+    "oof_auprc": 0.15912352697852825,
+    "holdout_ensemble_auroc": 0.844388315396442,
+    "holdout_ensemble_auprc": 0.5230596108735476,
+    "feature_importance_group_share": {
+      "fingerprint": 0.8573609180254053,
+      "pocket": 0.061012478205219,
+      "physchem": 0.08162660376937579
+    }
+  }
+}

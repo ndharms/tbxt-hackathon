@@ -1,0 +1,113 @@
+{
+  "variant": "morgan_fp",
+  "holdout_fold": 3,
+  "n_features": 2048,
+  "feature_groups": {
+    "fingerprint": [
+      0,
+      2048
+    ],
+    "pocket": null,
+    "physchem": null
+  },
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "n_train": 410,
+      "n_test": 112,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.410377358490566,
+      "test_auprc": 0.12451248445723655,
+      "model_path": "data/classification-models-try4-rjg/xgb_morgan_fp_cv_fold_0.ubj"
+    },
+    {
+      "test_fold": 1,
+      "train_folds": [
+        0,
+        2,
+        4,
+        5
+      ],
+      "n_train": 377,
+      "n_test": 145,
+      "pos_train": 19,
+      "pos_test": 39,
+      "test_auroc": 0.5406386066763424,
+      "test_auprc": 0.2758436457731739,
+      "model_path": "data/classification-models-try4-rjg/xgb_morgan_fp_cv_fold_1.ubj"
+    },
+    {
+      "test_fold": 2,
+      "train_folds": [
+        0,
+        1,
+        4,
+        5
+      ],
+      "n_train": 444,
+      "n_test": 78,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.36342592592592593,
+      "test_auprc": 0.06682977271091575,
+      "model_path": "data/classification-models-try4-rjg/xgb_morgan_fp_cv_fold_2.ubj"
+    },
+    {
+      "test_fold": 4,
+      "train_folds": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "n_train": 460,
+      "n_test": 62,
+      "pos_train": 57,
+      "pos_test": 1,
+      "test_auroc": 0.9508196721311475,
+      "test_auprc": 0.25,
+      "model_path": "data/classification-models-try4-rjg/xgb_morgan_fp_cv_fold_4.ubj"
+    },
+    {
+      "test_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "n_train": 397,
+      "n_test": 125,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.5924369747899159,
+      "test_auprc": 0.22430406492495125,
+      "model_path": "data/classification-models-try4-rjg/xgb_morgan_fp_cv_fold_5.ubj"
+    }
+  ],
+  "oof_auroc": 0.5742791319857313,
+  "oof_auprc": 0.14348784935828457,
+  "holdout_ensemble_auroc": 0.7719086316714254,
+  "holdout_ensemble_auprc": 0.46422641697847455,
+  "feature_importance_group_gain_sum": {
+    "fingerprint": 1.0000000049719346
+  },
+  "feature_importance_group_share": {
+    "fingerprint": 1.0
+  },
+  "config": {
+    "n_estimators": 61,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "subsample": 0.9,
+    "colsample_bytree": 0.6,
+    "random_state": 0
+  }
+}

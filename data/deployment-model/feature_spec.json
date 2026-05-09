@@ -1,0 +1,41 @@
+{
+  "fingerprint": {
+    "type": "maccs",
+    "n_bits": 167
+  },
+  "pocket": {
+    "pockets": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "per_pocket_columns": [
+      "tanimoto",
+      "substruct"
+    ],
+    "n_cols": 8,
+    "fragments_csv": "data/structures/sgc_fragments.csv",
+    "radius": 2,
+    "threshold": 0.35
+  },
+  "physchem": {
+    "columns": [
+      "mw",
+      "logp",
+      "hbd",
+      "hba",
+      "heavy_atoms",
+      "num_rings",
+      "tpsa",
+      "rotatable_bonds"
+    ],
+    "n_cols": 8
+  },
+  "column_order": [
+    "maccs",
+    "pocket",
+    "physchem"
+  ],
+  "total_cols": 183
+}

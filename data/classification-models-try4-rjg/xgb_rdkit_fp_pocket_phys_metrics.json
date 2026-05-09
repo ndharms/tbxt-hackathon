@@ -1,0 +1,123 @@
+{
+  "variant": "rdkit_fp_pocket_phys",
+  "holdout_fold": 3,
+  "n_features": 2064,
+  "feature_groups": {
+    "fingerprint": [
+      0,
+      2048
+    ],
+    "pocket": [
+      2048,
+      2056
+    ],
+    "physchem": [
+      2056,
+      2064
+    ]
+  },
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "n_train": 410,
+      "n_test": 112,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.8050314465408805,
+      "test_auprc": 0.20887358959648117,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_pocket_phys_cv_fold_0.ubj"
+    },
+    {
+      "test_fold": 1,
+      "train_folds": [
+        0,
+        2,
+        4,
+        5
+      ],
+      "n_train": 377,
+      "n_test": 145,
+      "pos_train": 19,
+      "pos_test": 39,
+      "test_auroc": 0.6202225447508467,
+      "test_auprc": 0.3395293125172847,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_pocket_phys_cv_fold_1.ubj"
+    },
+    {
+      "test_fold": 2,
+      "train_folds": [
+        0,
+        1,
+        4,
+        5
+      ],
+      "n_train": 444,
+      "n_test": 78,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.6180555555555556,
+      "test_auprc": 0.12316277227357939,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_pocket_phys_cv_fold_2.ubj"
+    },
+    {
+      "test_fold": 4,
+      "train_folds": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "n_train": 460,
+      "n_test": 62,
+      "pos_train": 57,
+      "pos_test": 1,
+      "test_auroc": 0.4590163934426229,
+      "test_auprc": 0.029411764705882353,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_pocket_phys_cv_fold_4.ubj"
+    },
+    {
+      "test_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "n_train": 397,
+      "n_test": 125,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.634453781512605,
+      "test_auprc": 0.10158022701097813,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_pocket_phys_cv_fold_5.ubj"
+    }
+  ],
+  "oof_auroc": 0.7297859690844233,
+  "oof_auprc": 0.2414904135290042,
+  "holdout_ensemble_auroc": 0.7943114430046124,
+  "holdout_ensemble_auprc": 0.3656076912248682,
+  "feature_importance_group_gain_sum": {
+    "fingerprint": 0.9710288867549253,
+    "pocket": 0.010503772099036723,
+    "physchem": 0.01846735547296703
+  },
+  "feature_importance_group_share": {
+    "fingerprint": 0.9710288728430636,
+    "pocket": 0.010503771948549928,
+    "physchem": 0.018467355208386545
+  },
+  "config": {
+    "n_estimators": 61,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "subsample": 0.9,
+    "colsample_bytree": 0.6,
+    "random_state": 0
+  }
+}

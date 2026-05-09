@@ -1,0 +1,118 @@
+{
+  "variant": "rdkit_fp_pocket",
+  "holdout_fold": 3,
+  "n_features": 2056,
+  "feature_groups": {
+    "fingerprint": [
+      0,
+      2048
+    ],
+    "pocket": [
+      2048,
+      2056
+    ],
+    "physchem": null
+  },
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "n_train": 410,
+      "n_test": 112,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.42610062893081757,
+      "test_auprc": 0.2104456524083781,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_pocket_cv_fold_0.ubj"
+    },
+    {
+      "test_fold": 1,
+      "train_folds": [
+        0,
+        2,
+        4,
+        5
+      ],
+      "n_train": 377,
+      "n_test": 145,
+      "pos_train": 19,
+      "pos_test": 39,
+      "test_auroc": 0.5563618771165941,
+      "test_auprc": 0.32248493441488935,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_pocket_cv_fold_1.ubj"
+    },
+    {
+      "test_fold": 2,
+      "train_folds": [
+        0,
+        1,
+        4,
+        5
+      ],
+      "n_train": 444,
+      "n_test": 78,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.5208333333333334,
+      "test_auprc": 0.2200639439504763,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_pocket_cv_fold_2.ubj"
+    },
+    {
+      "test_fold": 4,
+      "train_folds": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "n_train": 460,
+      "n_test": 62,
+      "pos_train": 57,
+      "pos_test": 1,
+      "test_auroc": 0.049180327868852514,
+      "test_auprc": 0.01694915254237288,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_pocket_cv_fold_4.ubj"
+    },
+    {
+      "test_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "n_train": 397,
+      "n_test": 125,
+      "pos_train": 52,
+      "pos_test": 6,
+      "test_auroc": 0.634453781512605,
+      "test_auprc": 0.12099770463741051,
+      "model_path": "data/classification-models-try4-rjg/xgb_rdkit_fp_pocket_cv_fold_5.ubj"
+    }
+  ],
+  "oof_auroc": 0.6349212247324614,
+  "oof_auprc": 0.19661946610326483,
+  "holdout_ensemble_auroc": 0.7624643092466507,
+  "holdout_ensemble_auprc": 0.311131901466494,
+  "feature_importance_group_gain_sum": {
+    "fingerprint": 0.9920394829068115,
+    "pocket": 0.007960531022399664
+  },
+  "feature_importance_group_share": {
+    "fingerprint": 0.9920394690884844,
+    "pocket": 0.007960530911515749
+  },
+  "config": {
+    "n_estimators": 61,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "subsample": 0.9,
+    "colsample_bytree": 0.6,
+    "random_state": 0
+  }
+}
