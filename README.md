@@ -31,15 +31,57 @@ See `notebooks/01-data-prep.ipynb` for the full cleaning pipeline and QC visuals
 
 ## Modeling
 
-Two complementary XGBoost approaches, both using Butina-clustered scaffold-aware 5-fold
-CV with Optuna HPO (AUC-PR objective). See [`docs/modeling-notes.md`](docs/modeling-notes.md)
-for full ablation results, findings, and performance commentary.
+The deployment model is a 6-booster XGBoost ensemble trained on MACCS keys
++ pocket similarity + physchem descriptors (183 features). See
+[`docs/deployment-model.md`](docs/deployment-model.md) for the full recipe,
+metrics, and inference instructions.
 
-- **Binary classifier** (`scripts/build_xgb_classifier.py`) -- active/inactive classification
-  using MACCS + RDKit descriptors (384 features). Best config: SPR-only negatives,
-  AUC-PR 0.43, F1 0.49 at optimal threshold.
-- **Pairwise classifier** (`scripts/build_pairwise_classifier.py`) -- relative potency
-  ranking using difference fingerprints. AUC-PR 0.40, Spearman rho ~0.32 with true pKD.
+Quick inference:
+
+```python
+from tbxt_hackathon.deployment import DeploymentModel
+model = DeploymentModel.load()
+probs = model.predict(["CCOC(=O)c1ccc(O)cc1", "Nc1ccc(Cl)cc1"])
+```
+
+Or from the CLI:
+
+```bash
+uv run python scripts/deployment-model/02_score_smiles.py \
+    --input compounds.csv --smiles-col smiles --id-col id \
+    --output scored.csv
+```
+
+### Model development history
+
+Four iterations got us to the current deployment model. Each has its own
+directory under `docs/` with a detailed README:
+
+- [`classification-models-try1-rjg`](docs/classification-models-try1-rjg/README.md)
+  — four ensembles on top-quartile pKD label; all tied with random on OOD
+  holdout. Label was too noisy to learn from.
+- [`classification-models-try2-rjg`](docs/classification-models-try2-rjg/README.md)
+  — dropped pKD 3-5 gray zone. +0.06 to +0.12 OOF AUROC; XGB cleanly
+  beat CheMeleon on ranking. Holdout too small (1 positive) for
+  aggregate metrics.
+- [`classification-models-try3-rjg`](docs/classification-models-try3-rjg/README.md)
+  — switched holdout to fold 3 (29 positives). xgb_no_val (Morgan +
+  physchem) AUROC 0.786.
+- [`classification-models-try4-rjg`](docs/classification-models-try4-rjg/README.md)
+  — ablated fingerprint type × feature set (9 variants).
+  **maccs_fp_pocket_phys** won with holdout AUROC 0.844, AUPRC 0.523.
+  This is the recipe baked into the deployment model.
+
+Separate documentation tracks the older approaches that were superseded:
+
+- **Binary classifier** (`scripts/build_xgb_classifier.py`) -- early XGBoost
+  active/inactive classifier using MACCS + RDKit descriptors. Superseded by
+  the try4 MACCS ablation.
+- **Pairwise classifier** (`scripts/build_pairwise_classifier.py`) -- relative
+  potency ranking using difference fingerprints. AUC-PR 0.40, Spearman rho
+  ~0.32 with true pKD. Not integrated into the current deployment pipeline.
+
+Older ablation notes live at [`docs/modeling-notes.md`](docs/modeling-notes.md).
 
 
 ## Setup
@@ -53,16 +95,27 @@ uv run jupyter lab
 
 ```
 scripts/                    Standalone modeling and utility scripts
-  build_xgb_classifier.py    Binary active/inactive classifier
-  build_pairwise_classifier.py  Pairwise potency comparison classifier
-models/
-  xgb_classifier/           Binary classifier outputs (models, params, report)
-  pairwise_classifier/       Pairwise classifier outputs (models, params, report)
+  deployment-model/          Final model: train + score CLIs
+  classification-models-try{1..4}-rjg/   Iterative development
+  build_xgb_classifier.py    Early binary classifier (superseded)
+  build_pairwise_classifier.py  Pairwise classifier (superseded)
+models/                     Early model outputs (superseded)
+  xgb_classifier/            Binary classifier params + report
+  pairwise_classifier/       Pairwise classifier params + report
 notebooks/                  Jupyter notebooks (numbered in execution order)
 docs/                       Write-ups and figures
+  deployment-model.md        Deployment model recipe, metrics, usage
+  classification-models-try{1..4}-rjg/  Per-try READMEs + plots
 data/
-  zenodo/                   Raw merged SPR data
-  processed/                Cleaned modeling-ready CSVs
-  structures/               PDB files (for future docking)
+  deployment-model/          Final 6-booster ensemble + metadata
+  classification-models-try{1..4}-rjg/  Per-try artifacts (models, preds)
+  zenodo/                    Raw merged SPR data
+  processed/                 Cleaned modeling-ready CSVs
+  structures/                PDB files + SGC fragments (pocket features)
 src/tbxt_hackathon/         Shared Python utilities
+  deployment.py              Inference pipeline for the deployment model
+  fingerprints.py            Morgan / RDKit-path / MACCS builders
+  xgb_baseline.py            XGBoost training helpers (class + reg)
+  pocket_assigner.py         SGC fragment similarity scoring
+  chemeleon_transfer.py      CheMeleon encoder wrapper (not used in deployment)
 ```
