@@ -1,0 +1,17 @@
+{
+  "objective": "binary:logistic",
+  "eval_metric": "aucpr",
+  "verbosity": 0,
+  "n_jobs": -1,
+  "random_state": 145304176,
+  "max_depth": 9,
+  "learning_rate": 0.0136583161853738,
+  "n_estimators": 350,
+  "subsample": 0.5479897980024689,
+  "colsample_bytree": 0.3868036069596479,
+  "min_child_weight": 18,
+  "gamma": 2.5644504549392364,
+  "reg_alpha": 0.39875196926464257,
+  "reg_lambda": 0.10399584705334093,
+  "seed": 145304176
+}
