@@ -36,9 +36,7 @@ style: |
 **Nate Harms, Raymond Gasper**
 TBXT Hackathon — May 9, 2026 — Boston
 
-Target: human TBXT (Brachyury) DBD, residues 42–219
-Source: onepot 3.4B CORE catalog
-Submission: 4 ranked SMILES (pockets A and F — see Boltz QC)
+Github: https://github.com/ndharms/tbxt-hackathon/tree/main
 
 ---
 
