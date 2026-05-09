@@ -150,6 +150,38 @@ Used as a **ranker**, not a calibrated probability. Metrics in appendix.
 
 ---
 
+## Model performance — positive ranking
+
+<div class="two-col">
+
+<div>
+
+**The right metric for a ranker is: where do the true positives land?**
+
+Evaluated on the try4 holdout (fold 3, n=186, 29 positives, 15.6% prevalence). For each positive, compute its **fractional rank** among the 186 holdout compounds after sorting by predicted score. Random = 0.5, perfect = 0.
+
+- `maccs_fp_pocket_phys` (the deployment recipe): **median rank 0.124, mean 0.208** — true positives land in the top ~12% on average
+- Tightest distribution of all 9 variants tested
+- Only variant where non-FP features materially contribute (86% MACCS / 6% pocket / 8% physchem importance)
+
+Morgan sharpens the *very top* of the ranking but has a long right tail. MACCS+pocket+physchem is wider at the top and has no catastrophic misses. Stacking both captures both behaviors.
+
+</div>
+
+<div>
+
+![Per-positive fractional rank by model variant](classification-models-try4-rjg/holdout_rank_box.png)
+
+<div class="small">
+
+**Per-positive fractional rank across 9 fingerprint × feature-set variants**, holdout fold 3 (29 positives). Lower = better; random = 0.5 (grey line).
+
+</div>
+</div>
+</div>
+
+---
+
 ## Pipeline — end-to-end with numbers
 
 ```
@@ -185,6 +217,39 @@ Used as a **ranker**, not a calibrated probability. Metrics in appendix.
                        ▼
                 Final 4 (2·A, 1·G, 1·F)
 ```
+
+---
+
+## Boltz site-localization filter — in action
+
+<div class="two-col">
+
+<div>
+
+![Intended target pocket](boltz-screen-1.png)
+
+<div class="small">
+
+**Intended:** compound docked into pocket A (R180 region).
+
+</div>
+
+</div>
+
+<div>
+
+![Boltz pose lands off-site](boltz-screen-2.png)
+
+<div class="small">
+
+**Boltz output:** same compound placed in a different pocket entirely.
+
+</div>
+
+</div>
+</div>
+
+**Rejecting these off-site hits is the filter that cut ~90–95% of Boltz survivors.** Affinity score alone would have kept the compound; the pose betrays it. Every submission has been visually pose-checked at its intended pocket.
 
 ---
 
@@ -277,11 +342,11 @@ All 4 satisfy: Chordoma physchem (LogP ≤ 6, HBD ≤ 6, HBA ≤ 12, MW ≤ 600)
 
 ## Appendix C — Model metrics deep-dive
 
+**Deployment ensemble** — 12 XGB boosters (2 FP × 6 leave-one-fold-out splits on PaCMAP-KMeans6).
+
 <div class="two-col">
 
 <div>
-
-**Deployment ensemble** — 12 XGB boosters (2 FP × 6 leave-one-fold-out splits on PaCMAP-KMeans6)
 
 **Overall OOF (N=708, 12.3% prev):**
 - AUROC **0.764** · AUPRC **0.337** (random 0.123)
@@ -293,21 +358,20 @@ Try1 (no filter, top-quartile): holdout AUROC 0.48 (random).
 Try2 (filter gray zone): +0.06 to +0.12 OOF AUROC across variants.
 Try4 (ablated FP × features): **maccs+pocket+physchem won** — only variant where non-FP features materially contribute (86% MACCS, 6% pocket, 8% physchem importance).
 
-**Why PaCMAP folds:** Butina folds gave a deceptive 97% AUROC / 89% precision — scaffold leakage. PaCMAP breaks scaffold-level correlation and gives honest generalization estimates.
-
 </div>
 
 <div>
 
-![Per-positive fractional rank by model variant](classification-models-try4-rjg/holdout_rank_box.png)
+**Why PaCMAP folds:** Butina folds gave a deceptive 97% AUROC / 89% precision — scaffold leakage. PaCMAP breaks scaffold-level correlation and gives honest generalization estimates.
 
-<div class="small">
+**Feature pipeline (183-dim):**
+| Slice | Source |
+|---|---|
+| 167 cols | MACCS keys |
+| 8 cols | Pocket scores (Tanimoto + substruct, 4 pockets) |
+| 8 cols | Physchem (MW, LogP, HBD, HBA, HAC, rings, TPSA, rotB) |
 
-**Per-positive rank of 29 holdout positives** across 9 fingerprint × feature-set variants. Lower is better; random = 0.5 (grey line). `maccs_fp_pocket_phys` is the tightest distribution — the recipe baked into deployment.
-
-Morgan sharpens the top of the ranking (8 positives at rank ≤ 9) but has a long right tail up to rank 131; MACCS+pocket+physchem has a wider leading span (10 positives in the top third) and no catastrophic misses. Ensembling both captures both behaviors.
-
-</div>
+Ensemble probabilities used as **rank score only**, not calibrated P(binder).
 
 </div>
 </div>
