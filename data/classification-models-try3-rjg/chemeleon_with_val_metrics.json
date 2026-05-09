@@ -1,0 +1,129 @@
+{
+  "holdout_fold": 3,
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "val_fold": 1,
+      "train_folds": [
+        2,
+        4,
+        5
+      ],
+      "n_train": 265,
+      "n_val": 145,
+      "n_test": 112,
+      "pos_train": 13,
+      "pos_val": 39,
+      "pos_test": 6,
+      "best_val_loss": 0.6345664262771606,
+      "best_val_auroc": 0.34010642766952515,
+      "best_val_auprc": 0.19419638812541962,
+      "test_auroc": 0.6053459119496856,
+      "test_auprc": 0.08280742320957254,
+      "best_epoch": 11,
+      "ckpt": "/Users/raymondgasper/Documents/other/tbxt-hackathon/data/classification-models-try3-rjg/chemeleon_with_val_cv_fold_0/best-epoch=0-val_loss=0.635.ckpt"
+    },
+    {
+      "test_fold": 1,
+      "val_fold": 2,
+      "train_folds": [
+        0,
+        4,
+        5
+      ],
+      "n_train": 299,
+      "n_val": 78,
+      "n_test": 145,
+      "pos_train": 13,
+      "pos_val": 6,
+      "pos_test": 39,
+      "best_val_loss": 0.31139323115348816,
+      "best_val_auroc": 0.34490740299224854,
+      "best_val_auprc": 0.053718797862529755,
+      "test_auroc": 0.29342041606192554,
+      "test_auprc": 0.19018267462250793,
+      "best_epoch": 12,
+      "ckpt": "/Users/raymondgasper/Documents/other/tbxt-hackathon/data/classification-models-try3-rjg/chemeleon_with_val_cv_fold_1/best-epoch=1-val_loss=0.311.ckpt"
+    },
+    {
+      "test_fold": 2,
+      "val_fold": 4,
+      "train_folds": [
+        0,
+        1,
+        5
+      ],
+      "n_train": 382,
+      "n_val": 62,
+      "n_test": 78,
+      "pos_train": 51,
+      "pos_val": 1,
+      "pos_test": 6,
+      "best_val_loss": 0.10957921296358109,
+      "best_val_auroc": 0.31147539615631104,
+      "best_val_auprc": 0.011627906933426857,
+      "test_auroc": 0.3819444444444444,
+      "test_auprc": 0.07237253291035269,
+      "best_epoch": 19,
+      "ckpt": "/Users/raymondgasper/Documents/other/tbxt-hackathon/data/classification-models-try3-rjg/chemeleon_with_val_cv_fold_2/best-epoch=8-val_loss=0.110.ckpt"
+    },
+    {
+      "test_fold": 4,
+      "val_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2
+      ],
+      "n_train": 335,
+      "n_val": 125,
+      "n_test": 62,
+      "pos_train": 51,
+      "pos_val": 6,
+      "pos_test": 1,
+      "best_val_loss": 0.19628320634365082,
+      "best_val_auroc": 0.5868346691131592,
+      "best_val_auprc": 0.08100263774394989,
+      "test_auroc": 0.6065573770491803,
+      "test_auprc": 0.04,
+      "best_epoch": 15,
+      "ckpt": "/Users/raymondgasper/Documents/other/tbxt-hackathon/data/classification-models-try3-rjg/chemeleon_with_val_cv_fold_4/best-epoch=4-val_loss=0.196.ckpt"
+    },
+    {
+      "test_fold": 5,
+      "val_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        4
+      ],
+      "n_train": 285,
+      "n_val": 112,
+      "n_test": 125,
+      "pos_train": 46,
+      "pos_val": 6,
+      "pos_test": 6,
+      "best_val_loss": 0.19764749705791473,
+      "best_val_auroc": 0.7075471878051758,
+      "best_val_auprc": 0.09294448792934418,
+      "test_auroc": 0.5490196078431372,
+      "test_auprc": 0.10428000279616734,
+      "best_epoch": 16,
+      "ckpt": "/Users/raymondgasper/Documents/other/tbxt-hackathon/data/classification-models-try3-rjg/chemeleon_with_val_cv_fold_5/best-epoch=5-val_loss=0.198.ckpt"
+    }
+  ],
+  "oof_auroc": 0.286377824019025,
+  "oof_auprc": 0.07797745761803788,
+  "holdout_ensemble_auroc": 0.7221612123874368,
+  "holdout_ensemble_auprc": 0.3228895243656453,
+  "config": {
+    "hidden_dim": 256,
+    "dropout": 0.2,
+    "max_epochs": 60,
+    "patience": 10,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "random_state": 0,
+    "accelerator": "mps"
+  }
+}

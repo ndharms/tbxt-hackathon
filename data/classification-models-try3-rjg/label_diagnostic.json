@@ -1,0 +1,56 @@
+{
+  "source_csv": "data/folds-pacmap-kmeans6/fold_assignments.csv",
+  "holdout_fold": 3,
+  "filter_lo_pkd": 3.0,
+  "filter_hi_pkd": 5.0,
+  "n_original": 1599,
+  "n_kept": 708,
+  "n_positives": 87,
+  "n_negatives": 621,
+  "n_dropped_gray": 891,
+  "prevalence": 0.1228813559322034,
+  "fold_breakdown": [
+    {
+      "fold": 0,
+      "n": 112,
+      "n_positives": 6,
+      "prevalence": 0.05357142857142857,
+      "is_holdout": false
+    },
+    {
+      "fold": 1,
+      "n": 145,
+      "n_positives": 39,
+      "prevalence": 0.2689655172413793,
+      "is_holdout": false
+    },
+    {
+      "fold": 2,
+      "n": 78,
+      "n_positives": 6,
+      "prevalence": 0.07692307692307693,
+      "is_holdout": false
+    },
+    {
+      "fold": 3,
+      "n": 186,
+      "n_positives": 29,
+      "prevalence": 0.15591397849462366,
+      "is_holdout": true
+    },
+    {
+      "fold": 4,
+      "n": 62,
+      "n_positives": 1,
+      "prevalence": 0.016129032258064516,
+      "is_holdout": false
+    },
+    {
+      "fold": 5,
+      "n": 125,
+      "n_positives": 6,
+      "prevalence": 0.048,
+      "is_holdout": false
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "n_holdout": 62,
+  "n_positives": 1,
+  "n_negatives": 61,
+  "random_baseline_mean_rank": 0.5,
+  "ensemble_mean_rank": {
+    "chemeleon_with_val": 0.5245901639344263,
+    "chemeleon_no_val": 0.4426229508196721,
+    "xgb_with_val": 0.01639344262295082,
+    "xgb_no_val": 0.01639344262295082
+  },
+  "ensemble_median_rank": {
+    "chemeleon_with_val": 0.5245901639344263,
+    "chemeleon_no_val": 0.4426229508196721,
+    "xgb_with_val": 0.01639344262295082,
+    "xgb_no_val": 0.01639344262295082
+  },
+  "ensemble_min_rank": {
+    "chemeleon_with_val": 0.5245901639344263,
+    "chemeleon_no_val": 0.4426229508196721,
+    "xgb_with_val": 0.01639344262295082,
+    "xgb_no_val": 0.01639344262295082
+  },
+  "ensemble_max_rank": {
+    "chemeleon_with_val": 0.5245901639344263,
+    "chemeleon_no_val": 0.4426229508196721,
+    "xgb_with_val": 0.01639344262295082,
+    "xgb_no_val": 0.01639344262295082
+  },
+  "best_by_mean_rank": "xgb_with_val",
+  "best_by_median_rank": "xgb_with_val",
+  "tukeyhsd_alpha": 0.05,
+  "tukeyhsd_pairs": [],
+  "wilcoxon_pairs": [
+    {
+      "group1": "chemeleon_with_val",
+      "group2": "chemeleon_no_val",
+      "n_positives": 1,
+      "median_diff": 0.08196721311475413,
+      "wilcoxon_stat": NaN,
+      "wilcoxon_p": NaN,
+      "note": "insufficient data or no differences"
+    },
+    {
+      "group1": "chemeleon_with_val",
+      "group2": "xgb_with_val",
+      "n_positives": 1,
+      "median_diff": 0.5081967213114754,
+      "wilcoxon_stat": NaN,
+      "wilcoxon_p": NaN,
+      "note": "insufficient data or no differences"
+    },
+    {
+      "group1": "chemeleon_with_val",
+      "group2": "xgb_no_val",
+      "n_positives": 1,
+      "median_diff": 0.5081967213114754,
+      "wilcoxon_stat": NaN,
+      "wilcoxon_p": NaN,
+      "note": "insufficient data or no differences"
+    },
+    {
+      "group1": "chemeleon_no_val",
+      "group2": "xgb_with_val",
+      "n_positives": 1,
+      "median_diff": 0.4262295081967213,
+      "wilcoxon_stat": NaN,
+      "wilcoxon_p": NaN,
+      "note": "insufficient data or no differences"
+    },
+    {
+      "group1": "chemeleon_no_val",
+      "group2": "xgb_no_val",
+      "n_positives": 1,
+      "median_diff": 0.4262295081967213,
+      "wilcoxon_stat": NaN,
+      "wilcoxon_p": NaN,
+      "note": "insufficient data or no differences"
+    },
+    {
+      "group1": "xgb_with_val",
+      "group2": "xgb_no_val",
+      "n_positives": 1,
+      "median_diff": 0.0,
+      "wilcoxon_stat": NaN,
+      "wilcoxon_p": NaN,
+      "note": "insufficient data or no differences"
+    }
+  ]
+}

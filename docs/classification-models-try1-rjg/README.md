@@ -110,6 +110,45 @@ whiskers = 1.5×IQR, points = per-compound Briers with jitter. The best
 ensemble (green) sits a hair lower but well within the spread of the
 others.
 
+### Rank of positive (preferred comparison metric, added post-hoc)
+
+Brier treats positives and negatives symmetrically, so with only 20
+positives vs. 111 negatives the mean is dominated by negative-class
+calibration. For the deployment task (pick top-K from 3.4B), what
+matters is how high in the ranking each true positive lands.
+
+Each of the 20 holdout positives gets a **fractional rank** =
+(# compounds scored higher) / (N – 1). Bounded [0, 1]; 0 = top,
+1 = bottom; 0.5 = random ordering.
+
+| Ensemble | Mean rank | Median rank |
+|---|---:|---:|
+| random-ordering baseline | 0.500 | 0.500 |
+| chemeleon_no_val | 0.522 | 0.627 |
+| xgb_with_val     | 0.532 | 0.588 |
+| xgb_no_val       | 0.538 | 0.627 |
+| chemeleon_with_val | 0.561 | 0.642 |
+
+**All four mean ranks are at or above 0.5.** Under the try1 top-quartile
+label, none of the ensembles rank fold-4 positives any better than
+random on average — the label was too noisy to teach transferable
+ordering. This matches the AUROC ≈ 0.5 finding above and makes the
+holdout result honest in a way that Brier (which rewarded all four for
+predicting low probabilities) did not.
+
+![Per-positive rank distributions](holdout_rank_box.png)
+
+![TukeyHSD on rank simultaneous CI](holdout_rank_tukey.png)
+
+Both TukeyHSD (unpaired, all p-adj > 0.97) and paired Wilcoxon
+signed-rank (all p > 0.57 across 6 pairs) fail to reject.
+Consistent with the Brier finding — on this holdout under this label,
+models are not distinguishable **because none of them generalized**.
+
+See [try2](../classification-models-try2-rjg/README.md) and
+[try3](../classification-models-try3-rjg/README.md) for how cleaner
+labels + better holdout composition flip this result.
+
 ## What this says
 
 1. **The holdout fold is out-of-domain.** We picked the most structurally
@@ -164,6 +203,9 @@ uv run python scripts/classification-models-try1-rjg/06_xgb_novalid_cv.py --n-es
 
 # 7. compare + TukeyHSD + plots
 uv run python scripts/classification-models-try1-rjg/07_compare_ensembles.py
+
+# 8. rank-based comparison (added post-hoc; preferred for deployment)
+uv run python scripts/classification-models-try1-rjg/08_compare_ensembles_by_rank.py
 ```
 
 ## Artifacts

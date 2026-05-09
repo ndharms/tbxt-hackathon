@@ -1,0 +1,102 @@
+{
+  "holdout_fold": 3,
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "n_train": 410,
+      "n_test": 112,
+      "pos_train": 52,
+      "pos_test": 6,
+      "n_estimators": 61,
+      "test_auroc": 0.28459119496855345,
+      "test_auprc": 0.04613916671221147,
+      "model_path": "data/classification-models-try3-rjg/xgb_no_val_cv_fold_0.ubj"
+    },
+    {
+      "test_fold": 1,
+      "train_folds": [
+        0,
+        2,
+        4,
+        5
+      ],
+      "n_train": 377,
+      "n_test": 145,
+      "pos_train": 19,
+      "pos_test": 39,
+      "n_estimators": 61,
+      "test_auroc": 0.5579342041606192,
+      "test_auprc": 0.3141441197143213,
+      "model_path": "data/classification-models-try3-rjg/xgb_no_val_cv_fold_1.ubj"
+    },
+    {
+      "test_fold": 2,
+      "train_folds": [
+        0,
+        1,
+        4,
+        5
+      ],
+      "n_train": 444,
+      "n_test": 78,
+      "pos_train": 52,
+      "pos_test": 6,
+      "n_estimators": 61,
+      "test_auroc": 0.5162037037037037,
+      "test_auprc": 0.09368994532038011,
+      "model_path": "data/classification-models-try3-rjg/xgb_no_val_cv_fold_2.ubj"
+    },
+    {
+      "test_fold": 4,
+      "train_folds": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "n_train": 460,
+      "n_test": 62,
+      "pos_train": 57,
+      "pos_test": 1,
+      "n_estimators": 61,
+      "test_auroc": 0.9344262295081968,
+      "test_auprc": 0.2,
+      "model_path": "data/classification-models-try3-rjg/xgb_no_val_cv_fold_4.ubj"
+    },
+    {
+      "test_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "n_train": 397,
+      "n_test": 125,
+      "pos_train": 52,
+      "pos_test": 6,
+      "n_estimators": 61,
+      "test_auroc": 0.6155462184873949,
+      "test_auprc": 0.2703879820810077,
+      "model_path": "data/classification-models-try3-rjg/xgb_no_val_cv_fold_5.ubj"
+    }
+  ],
+  "oof_auroc": 0.5906658739595719,
+  "oof_auprc": 0.1647018060168816,
+  "holdout_ensemble_auroc": 0.7864045684164287,
+  "holdout_ensemble_auprc": 0.4161708408477962,
+  "config": {
+    "n_estimators": 61,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "subsample": 0.9,
+    "colsample_bytree": 0.6,
+    "random_state": 0
+  }
+}

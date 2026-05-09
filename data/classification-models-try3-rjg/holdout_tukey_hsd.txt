@@ -1,0 +1,11 @@
+            Multiple Comparison of Means - Tukey HSD, FWER=0.05            
+===========================================================================
+      group1             group2       meandiff p-adj   lower  upper  reject
+---------------------------------------------------------------------------
+  chemeleon_no_val chemeleon_with_val  -0.0036 0.9987  -0.063 0.0559  False
+  chemeleon_no_val         xgb_no_val  -0.0079 0.9862 -0.0674 0.0516  False
+  chemeleon_no_val       xgb_with_val  -0.0049 0.9966 -0.0644 0.0546  False
+chemeleon_with_val         xgb_no_val  -0.0044 0.9976 -0.0638 0.0551  False
+chemeleon_with_val       xgb_with_val  -0.0013 0.9999 -0.0608 0.0581  False
+        xgb_no_val       xgb_with_val    0.003 0.9992 -0.0565 0.0625  False
+---------------------------------------------------------------------------

@@ -1,0 +1,2 @@
+Skipped: holdout has only 1 positive.
+TukeyHSD requires >= 2 per-positive values per group.

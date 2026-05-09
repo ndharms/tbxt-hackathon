@@ -1,0 +1,86 @@
+{
+  "n_holdout": 186,
+  "n_holdout_positives": 29,
+  "holdout_prevalence": 0.15591397849462366,
+  "baseline_brier_prevalence_only": 0.13160480980460168,
+  "ensemble_metrics": {
+    "chemeleon_with_val": {
+      "mean_brier": 0.12379063766415216,
+      "auroc": 0.7221612123874368,
+      "auprc": 0.3228895243656453
+    },
+    "chemeleon_no_val": {
+      "mean_brier": 0.12734090141248944,
+      "auroc": 0.6885569953876565,
+      "auprc": 0.3087617698204924
+    },
+    "xgb_with_val": {
+      "mean_brier": 0.12245277147490262,
+      "auroc": 0.737645508455963,
+      "auprc": 0.368827163806287
+    },
+    "xgb_no_val": {
+      "mean_brier": 0.11943299449887676,
+      "auroc": 0.7864045684164287,
+      "auprc": 0.4161708408477962
+    }
+  },
+  "best_by_mean_brier": "xgb_no_val",
+  "tukeyhsd_alpha": 0.05,
+  "tukeyhsd_pairs": [
+    {
+      "group1": "chemeleon_no_val",
+      "group2": "chemeleon_with_val",
+      "meandiff": -0.0036,
+      "p_adj": 0.9987,
+      "lower": -0.063,
+      "upper": 0.0559,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_no_val",
+      "group2": "xgb_no_val",
+      "meandiff": -0.0079,
+      "p_adj": 0.9862,
+      "lower": -0.0674,
+      "upper": 0.0516,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_no_val",
+      "group2": "xgb_with_val",
+      "meandiff": -0.0049,
+      "p_adj": 0.9966,
+      "lower": -0.0644,
+      "upper": 0.0546,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_with_val",
+      "group2": "xgb_no_val",
+      "meandiff": -0.0044,
+      "p_adj": 0.9976,
+      "lower": -0.0638,
+      "upper": 0.0551,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_with_val",
+      "group2": "xgb_with_val",
+      "meandiff": -0.0013,
+      "p_adj": 0.9999,
+      "lower": -0.0608,
+      "upper": 0.0581,
+      "reject": false
+    },
+    {
+      "group1": "xgb_no_val",
+      "group2": "xgb_with_val",
+      "meandiff": 0.003,
+      "p_adj": 0.9992,
+      "lower": -0.0565,
+      "upper": 0.0625,
+      "reject": false
+    }
+  ]
+}

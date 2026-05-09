@@ -1,0 +1,10 @@
+Paired Wilcoxon signed-rank on per-positive fractional rank.
+n_positives = 20. alpha = 0.05 (uncorrected; Bonferroni = 0.05/6 = 0.0083).
+
+group1                 group2                  median_diff     w_stat          p
+chemeleon_with_val     chemeleon_no_val            -0.0077     92.000     0.6273
+chemeleon_with_val     xgb_with_val                 0.0615     95.000     0.7285
+chemeleon_with_val     xgb_no_val                   0.0462     93.500     0.6677
+chemeleon_no_val       xgb_with_val                 0.0231    100.500     0.8666
+chemeleon_no_val       xgb_no_val                   0.0423    100.500     0.8666
+xgb_with_val           xgb_no_val                  -0.0038     72.500     0.5709

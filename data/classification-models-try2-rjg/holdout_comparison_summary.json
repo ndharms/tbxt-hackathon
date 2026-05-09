@@ -1,0 +1,86 @@
+{
+  "n_holdout": 62,
+  "n_holdout_positives": 1,
+  "holdout_prevalence": 0.016129032258064516,
+  "baseline_brier_prevalence_only": 0.01586888657648283,
+  "ensemble_metrics": {
+    "chemeleon_with_val": {
+      "mean_brier": 0.05786354620313049,
+      "auroc": 0.47540983606557374,
+      "auprc": 0.030303030303030304
+    },
+    "chemeleon_no_val": {
+      "mean_brier": 0.0461650824925705,
+      "auroc": 0.5573770491803278,
+      "auprc": 0.03571428571428571
+    },
+    "xgb_with_val": {
+      "mean_brier": 0.04378830393892979,
+      "auroc": 0.9836065573770492,
+      "auprc": 0.5
+    },
+    "xgb_no_val": {
+      "mean_brier": 0.06805900590783151,
+      "auroc": 0.9836065573770492,
+      "auprc": 0.5
+    }
+  },
+  "best_by_mean_brier": "xgb_with_val",
+  "tukeyhsd_alpha": 0.05,
+  "tukeyhsd_pairs": [
+    {
+      "group1": "chemeleon_no_val",
+      "group2": "chemeleon_with_val",
+      "meandiff": 0.0117,
+      "p_adj": 0.8761,
+      "lower": -0.0286,
+      "upper": 0.052,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_no_val",
+      "group2": "xgb_no_val",
+      "meandiff": 0.0219,
+      "p_adj": 0.497,
+      "lower": -0.0184,
+      "upper": 0.0622,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_no_val",
+      "group2": "xgb_with_val",
+      "meandiff": -0.0024,
+      "p_adj": 0.9987,
+      "lower": -0.0427,
+      "upper": 0.0379,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_with_val",
+      "group2": "xgb_no_val",
+      "meandiff": 0.0102,
+      "p_adj": 0.9139,
+      "lower": -0.0301,
+      "upper": 0.0505,
+      "reject": false
+    },
+    {
+      "group1": "chemeleon_with_val",
+      "group2": "xgb_with_val",
+      "meandiff": -0.0141,
+      "p_adj": 0.8029,
+      "lower": -0.0544,
+      "upper": 0.0262,
+      "reject": false
+    },
+    {
+      "group1": "xgb_no_val",
+      "group2": "xgb_with_val",
+      "meandiff": -0.0243,
+      "p_adj": 0.4045,
+      "lower": -0.0646,
+      "upper": 0.016,
+      "reject": false
+    }
+  ]
+}

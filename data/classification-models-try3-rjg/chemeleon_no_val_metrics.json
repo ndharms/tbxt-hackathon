@@ -1,0 +1,103 @@
+{
+  "holdout_fold": 3,
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        4,
+        5
+      ],
+      "n_train": 410,
+      "n_test": 112,
+      "pos_train": 52,
+      "pos_test": 6,
+      "epochs": 15,
+      "test_auroc": 0.6808176100628931,
+      "test_auprc": 0.09264865458101407,
+      "ckpt": "data/classification-models-try3-rjg/chemeleon_no_val_cv_fold_0.ckpt"
+    },
+    {
+      "test_fold": 1,
+      "train_folds": [
+        0,
+        2,
+        4,
+        5
+      ],
+      "n_train": 377,
+      "n_test": 145,
+      "pos_train": 19,
+      "pos_test": 39,
+      "epochs": 15,
+      "test_auroc": 0.35655539429124333,
+      "test_auprc": 0.2054504328518113,
+      "ckpt": "data/classification-models-try3-rjg/chemeleon_no_val_cv_fold_1.ckpt"
+    },
+    {
+      "test_fold": 2,
+      "train_folds": [
+        0,
+        1,
+        4,
+        5
+      ],
+      "n_train": 444,
+      "n_test": 78,
+      "pos_train": 52,
+      "pos_test": 6,
+      "epochs": 15,
+      "test_auroc": 0.40740740740740744,
+      "test_auprc": 0.11546982912598237,
+      "ckpt": "data/classification-models-try3-rjg/chemeleon_no_val_cv_fold_2.ckpt"
+    },
+    {
+      "test_fold": 4,
+      "train_folds": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "n_train": 460,
+      "n_test": 62,
+      "pos_train": 57,
+      "pos_test": 1,
+      "epochs": 15,
+      "test_auroc": 0.6885245901639344,
+      "test_auprc": 0.05,
+      "ckpt": "data/classification-models-try3-rjg/chemeleon_no_val_cv_fold_4.ckpt"
+    },
+    {
+      "test_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "n_train": 397,
+      "n_test": 125,
+      "pos_train": 52,
+      "pos_test": 6,
+      "epochs": 15,
+      "test_auroc": 0.5658263305322129,
+      "test_auprc": 0.1227834998545447,
+      "ckpt": "data/classification-models-try3-rjg/chemeleon_no_val_cv_fold_5.ckpt"
+    }
+  ],
+  "oof_auroc": 0.48569411414982167,
+  "oof_auprc": 0.10262273934366127,
+  "holdout_ensemble_auroc": 0.6885569953876565,
+  "holdout_ensemble_auprc": 0.3087617698204924,
+  "config": {
+    "hidden_dim": 256,
+    "dropout": 0.2,
+    "epochs": 15,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "random_state": 0,
+    "accelerator": "mps"
+  }
+}

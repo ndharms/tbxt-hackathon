@@ -1,0 +1,103 @@
+{
+  "holdout_fold": 4,
+  "cv_runs": [
+    {
+      "test_fold": 0,
+      "train_folds": [
+        1,
+        2,
+        3,
+        5
+      ],
+      "n_train": 534,
+      "n_test": 112,
+      "pos_train": 80,
+      "pos_test": 6,
+      "epochs": 15,
+      "test_auroc": 0.5361635220125787,
+      "test_auprc": 0.13524720373884552,
+      "ckpt": "data/classification-models-try2-rjg/chemeleon_no_val_cv_fold_0.ckpt"
+    },
+    {
+      "test_fold": 1,
+      "train_folds": [
+        0,
+        2,
+        3,
+        5
+      ],
+      "n_train": 501,
+      "n_test": 145,
+      "pos_train": 47,
+      "pos_test": 39,
+      "epochs": 15,
+      "test_auroc": 0.6526366715045959,
+      "test_auprc": 0.3908963778372331,
+      "ckpt": "data/classification-models-try2-rjg/chemeleon_no_val_cv_fold_1.ckpt"
+    },
+    {
+      "test_fold": 2,
+      "train_folds": [
+        0,
+        1,
+        3,
+        5
+      ],
+      "n_train": 568,
+      "n_test": 78,
+      "pos_train": 80,
+      "pos_test": 6,
+      "epochs": 15,
+      "test_auroc": 0.5370370370370371,
+      "test_auprc": 0.2557176455631833,
+      "ckpt": "data/classification-models-try2-rjg/chemeleon_no_val_cv_fold_2.ckpt"
+    },
+    {
+      "test_fold": 3,
+      "train_folds": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "n_train": 460,
+      "n_test": 186,
+      "pos_train": 57,
+      "pos_test": 29,
+      "epochs": 15,
+      "test_auroc": 0.7779486053151768,
+      "test_auprc": 0.4510430657550086,
+      "ckpt": "data/classification-models-try2-rjg/chemeleon_no_val_cv_fold_3.ckpt"
+    },
+    {
+      "test_fold": 5,
+      "train_folds": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "n_train": 521,
+      "n_test": 125,
+      "pos_train": 80,
+      "pos_test": 6,
+      "epochs": 15,
+      "test_auroc": 0.5854341736694678,
+      "test_auprc": 0.08342391182948458,
+      "ckpt": "data/classification-models-try2-rjg/chemeleon_no_val_cv_fold_5.ckpt"
+    }
+  ],
+  "oof_auroc": 0.7227990033222592,
+  "oof_auprc": 0.33382044016163204,
+  "holdout_ensemble_auroc": 0.5573770491803278,
+  "holdout_ensemble_auprc": 0.03571428571428571,
+  "config": {
+    "hidden_dim": 256,
+    "dropout": 0.2,
+    "epochs": 15,
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "random_state": 0,
+    "accelerator": "mps"
+  }
+}

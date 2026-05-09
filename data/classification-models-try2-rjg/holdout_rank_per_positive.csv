@@ -1,0 +1,2 @@
+compound_id,is_binder,rank_chemeleon_with_val,rank_chemeleon_no_val,rank_xgb_with_val,rank_xgb_no_val
+CSC026257373,true,0.5245901639344263,0.4426229508196721,0.01639344262295082,0.01639344262295082
