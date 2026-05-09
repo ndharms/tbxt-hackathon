@@ -25,6 +25,7 @@ build/
 !data/structures/*.csv
 !data/onepot_neighbors_all_matches.csv
 !data/onepot_neighbors_assigned.csv
+!data/screening_library_combined.csv
 *shard_*.parquet
 *part_*.parquet
 
