@@ -1,0 +1,8 @@
+smiles,id,score,ligand_efficiency,n_heavy_atoms,mw,score_std,status
+Clc1cccc(Oc2nnc(Cc3ccccc3)c3ccccc23)c1,SM-QZJTGDW5,-7.697,0.3079,25,346.82,0.054,ok
+O=C(Nc1cccc(OCc2ccccc2)c1)N1Cc2ccc(O)cc2C(O)C1,SM-68MRL1C4,-7.15,0.2466,29,390.44,0.201,ok
+N#Cc1ccc(Nc2ccc3c(CC(=O)O)noc3c2)cc1OCc1ccccc1,SM-BVFSTKQ9,-6.995,0.2332,30,399.41,0.138,ok
+COc1ccc(n2c(CO)nc3ccc(C(=O)O)nc32)cc1OCc1ccccc1,SM-Y7ALGPZQ,-6.852,0.2284,30,405.41,0.025,ok
+O=C(COc1cccc2ccccc12)Nc1cc(Cl)ccc1C(=O)O,SM-7S42XMFL,-6.763,0.2705,25,355.78,0.094,ok
+O=C(Nc1cccc(C(F)(F)F)c1)Nc1ccccc1C(=O)O,SM-173JKLGM,-6.398,0.2782,23,324.26,0.026,ok
+Cc1c(Nc2ccc(-n3cc(C(=O)O)nn3)cc2)cccc1OCc1ccccc1,SM-LWZQ4UEN,-6.141,0.2047,30,400.44,0.278,ok
