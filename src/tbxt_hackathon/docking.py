@@ -13,10 +13,13 @@ Example:
     >>> report.show_3d()
     >>> print(report.summary())
     >>> df = dock_batch(["CC(=O)Nc1ccccc1", "c1ccccc1"], "data/structures/TGT_TBXT_A_pocket.pdb")
+    >>> df = dock_screen(smiles_list)  # auto-assigns pockets, docks each group
 """
 
 from __future__ import annotations
 
+import os
+import sys
 import tempfile
 import warnings
 from dataclasses import dataclass
@@ -482,7 +485,18 @@ def _run_vina(
 
     v.set_ligand_from_string(ligand_pdbqt)
 
-    v.dock(exhaustiveness=exhaustiveness, n_poses=n_poses)
+    # Suppress Vina's C++ "low exhaustiveness" stderr warning
+    stderr_fd = sys.stderr.fileno()
+    old_stderr = os.dup(stderr_fd)
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull, stderr_fd)
+    try:
+        v.dock(exhaustiveness=exhaustiveness, n_poses=n_poses)
+    finally:
+        os.dup2(old_stderr, stderr_fd)
+        os.close(old_stderr)
+        os.close(devnull)
+
     energies = v.energies()
     poses_pdbqt = v.poses()
     return energies, poses_pdbqt
@@ -1124,3 +1138,208 @@ def dock_batch(
         f"Output rows ({df.shape[0]}) != input SMILES ({len(smiles_list)})"
     )
     return df.sort_values("score", ascending=True, na_position="last").reset_index(drop=True)
+
+
+# ---------------------------------------------------------------------------
+# Multi-pocket screen (PocketAssigner + dock_batch)
+# ---------------------------------------------------------------------------
+
+_DEFAULT_POCKET_PDBS = {
+    "A": "data/structures/TGT_TBXT_A_pocket.pdb",
+    "C": "data/structures/TGT_TBXT_C_pocket.pdb",
+    "D": "data/structures/TGT_TBXT_D_pocket.pdb",
+}
+
+
+def dock_screen(
+    smiles_list: list[str],
+    fragment_csv: str | Path = "data/structures/sgc_fragments.csv",
+    pocket_pdbs: dict[str, str | Path] | None = None,
+    n_conformers: int = 3,
+    exhaustiveness: int = 3,
+    n_poses: int = 1,
+    assigner_threshold: float = 0.35,
+    dock_unassigned: bool = True,
+    default_pocket: str = "A",
+    checkpoint_dir: str | Path | None = None,
+) -> pd.DataFrame:
+    """Screen compounds by assigning each to a pocket, then batch-docking.
+
+    Workflow:
+      1. PocketAssigner assigns each SMILES to its best-matching pocket
+         (A, C, or D) based on fragment similarity. Pocket B is excluded.
+      2. Compounds that can't be assigned go to ``default_pocket`` if
+         ``dock_unassigned=True``, otherwise they get NaN scores.
+      3. Each pocket group is batch-docked against its pocket PDB.
+      4. Results are concatenated into a single DataFrame.
+
+    Checkpointing: if ``checkpoint_dir`` is set, each pocket batch writes
+    a parquet file on completion. If the file already exists the pocket
+    is skipped, allowing restarts without re-docking finished pockets.
+
+    Args:
+        smiles_list: Compounds to screen.
+        fragment_csv: Path to sgc_fragments.csv for PocketAssigner.
+        pocket_pdbs: Dict mapping pocket label to PDB path. Defaults to
+            A, C, D pocket PDBs in data/structures/.
+        n_conformers: Conformer runs per compound.
+        exhaustiveness: Vina exhaustiveness (3 is fast, 8 is moderate).
+        n_poses: Poses per conformer run (1 for scoring).
+        assigner_threshold: Minimum Tanimoto for pocket assignment.
+        dock_unassigned: If True, dock unassigned compounds against
+            ``default_pocket``. If False, they get NaN scores.
+        default_pocket: Pocket used for unassigned compounds.
+        checkpoint_dir: Directory for per-pocket checkpoint parquet files.
+            None disables checkpointing.
+
+    Returns:
+        DataFrame with columns: smiles, pocket, score, ligand_efficiency,
+        n_heavy_atoms, mw, score_std, pocket_tanimoto, pocket_substruct,
+        status. Sorted by score ascending.
+    """
+    from loguru import logger
+    from .pocket_assigner import PocketAssigner
+
+    if pocket_pdbs is None:
+        pocket_pdbs = dict(_DEFAULT_POCKET_PDBS)
+
+    active_pockets = set(pocket_pdbs.keys())
+
+    assigner = PocketAssigner.from_csv(
+        fragment_csv, threshold=assigner_threshold,
+    )
+
+    logger.info(f"Assigning {len(smiles_list)} compounds to pockets...")
+    scores_list = assigner.score_batch(smiles_list)
+    assignments = assigner.assign_batch(smiles_list)
+
+    pocket_groups: dict[str | None, list[tuple[int, str, dict]]] = {}
+    for i, (smi, pocket, scores) in enumerate(
+        zip(smiles_list, assignments, scores_list)
+    ):
+        if pocket == "B":
+            pocket = None
+        if pocket is not None and pocket not in active_pockets:
+            pocket = None
+
+        pocket_groups.setdefault(pocket, []).append((i, smi, scores))
+
+    counts = {
+        k: len(v) for k, v in pocket_groups.items()
+    }
+    logger.info(f"Pocket assignments: {counts}")
+
+    if checkpoint_dir is not None:
+        checkpoint_dir = Path(checkpoint_dir)
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
+    all_records: list[dict] = []
+
+    for pocket_label in sorted(active_pockets):
+        items = pocket_groups.get(pocket_label, [])
+
+        if dock_unassigned and pocket_label == default_pocket:
+            unassigned = pocket_groups.get(None, [])
+            items = items + unassigned
+
+        if not items:
+            logger.info(f"Pocket {pocket_label}: 0 compounds, skipping")
+            continue
+
+        if checkpoint_dir is not None:
+            ckpt = checkpoint_dir / f"dock_{pocket_label}.parquet"
+            if ckpt.exists():
+                logger.info(
+                    f"Pocket {pocket_label}: checkpoint exists, loading "
+                    f"{ckpt}"
+                )
+                ckpt_df = pd.read_parquet(ckpt)
+                all_records.extend(ckpt_df.to_dict("records"))
+                continue
+
+        smi_list = [smi for _, smi, _ in items]
+        logger.info(
+            f"Pocket {pocket_label}: docking {len(smi_list)} compounds "
+            f"(exhaustiveness={exhaustiveness}, n_conformers={n_conformers})"
+        )
+
+        pocket_pdb = pocket_pdbs[pocket_label]
+        df = dock_batch(
+            smi_list,
+            pocket_pdb,
+            n_conformers=n_conformers,
+            exhaustiveness=exhaustiveness,
+            n_poses=n_poses,
+        )
+
+        df.insert(1, "pocket", pocket_label)
+
+        tc_vals = []
+        sub_vals = []
+        for _, smi, scores in items:
+            ps = scores.get(pocket_label)
+            if ps is not None:
+                tc_vals.append(round(ps.tanimoto, 4))
+                sub_vals.append(ps.substruct)
+            else:
+                tc_vals.append(0.0)
+                sub_vals.append(False)
+
+        df_sorted_by_input = df.sort_values("smiles").reset_index(drop=True)
+        items_sorted = sorted(items, key=lambda x: x[1])
+        tc_sorted = [
+            round(scores.get(pocket_label).tanimoto, 4)
+            if scores.get(pocket_label) else 0.0
+            for _, smi, scores in items_sorted
+        ]
+        sub_sorted = [
+            scores.get(pocket_label).substruct
+            if scores.get(pocket_label) else False
+            for _, smi, scores in items_sorted
+        ]
+
+        smi_to_meta = {}
+        for _, smi, scores in items:
+            ps = scores.get(pocket_label)
+            if ps is not None:
+                smi_to_meta[smi] = (round(ps.tanimoto, 4), ps.substruct)
+            else:
+                smi_to_meta[smi] = (0.0, False)
+
+        df["pocket_tanimoto"] = df["smiles"].map(
+            lambda s: smi_to_meta.get(s, (0.0, False))[0]
+        )
+        df["pocket_substruct"] = df["smiles"].map(
+            lambda s: smi_to_meta.get(s, (0.0, False))[1]
+        )
+
+        if checkpoint_dir is not None:
+            ckpt = checkpoint_dir / f"dock_{pocket_label}.parquet"
+            df.to_parquet(ckpt, index=False)
+            logger.info(f"Pocket {pocket_label}: checkpoint saved to {ckpt}")
+
+        all_records.extend(df.to_dict("records"))
+
+    if not dock_unassigned:
+        unassigned = pocket_groups.get(None, [])
+        for _, smi, scores in unassigned:
+            all_records.append({
+                "smiles": smi,
+                "pocket": None,
+                "score": float("nan"),
+                "ligand_efficiency": float("nan"),
+                "n_heavy_atoms": 0,
+                "mw": 0.0,
+                "score_std": float("nan"),
+                "pocket_tanimoto": 0.0,
+                "pocket_substruct": False,
+                "status": "unassigned",
+            })
+
+    result = pd.DataFrame(all_records)
+    assert result.shape[0] == len(smiles_list), (
+        f"Output rows ({result.shape[0]}) != input SMILES ({len(smiles_list)})"
+    )
+    return result.sort_values(
+        "score", ascending=True, na_position="last",
+    ).reset_index(drop=True)

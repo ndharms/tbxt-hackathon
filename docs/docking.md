@@ -1,8 +1,10 @@
 # Docking Pipeline
 
-AutoDock Vina docking against TBXT binding pockets. Two modes: detailed
-single-compound reports with 3D visualization, and fast batch scoring for
-filtering large compound sets.
+AutoDock Vina docking against TBXT binding pockets. Three modes:
+- `dock_single()` -- detailed report with interaction analysis and 3D visualization
+- `dock_batch()` -- fast scoring of many SMILES against a single pocket
+- `dock_screen()` -- multi-pocket screen using PocketAssigner to route compounds to
+  the right pocket (A, C, or D), then batch-docking each group
 
 ## Environment setup
 
@@ -20,7 +22,7 @@ All subsequent commands assume `conda activate tbxt-dock`.
 ## Quick start
 
 ```python
-from tbxt_hackathon.docking import dock_single, dock_batch
+from tbxt_hackathon.docking import dock_single, dock_batch, dock_screen
 
 POCKET = "data/structures/TGT_TBXT_A_pocket.pdb"
 
@@ -29,10 +31,13 @@ report = dock_single("CC(=O)Nc1ccc(F)c(F)c1", POCKET)
 print(report.summary())
 report.show_3d()          # interactive 3D in Jupyter
 
-# --- Batch scoring (hundreds/thousands of SMILES) ---
+# --- Batch scoring against one pocket ---
 import pandas as pd
 smiles_list = pd.read_csv("my_compounds.csv")["smiles"].tolist()
 df = dock_batch(smiles_list, POCKET)
+
+# --- Multi-pocket screen (~6K compounds) ---
+df = dock_screen(smiles_list, checkpoint_dir="checkpoints/dock")
 df.to_csv("docking_scores.csv", index=False)
 ```
 
@@ -105,59 +110,68 @@ df = dock_batch(
 Compounds that fail (bad SMILES, embedding failure, etc.) get `NaN` scores
 and the error in `status` rather than crashing the batch.
 
-## Scaling to thousands of compounds
+## Multi-pocket screen: `dock_screen`
 
-`dock_batch` is sequential. Each compound takes ~2-10 seconds depending on
-size and exhaustiveness. For large runs:
-
-**Estimate runtime before starting:**
-
-```python
-n = len(smiles_list)
-# ~5 sec/compound at exhaustiveness=8, n_conformers=3
-est_minutes = n * 5 / 60
-print(f"{n} compounds, ~{est_minutes:.0f} min")
-```
-
-**Reduce per-compound cost when possible:**
+Routes each compound to its best-matching pocket via PocketAssigner, then
+batch-docks each group against the correct pocket PDB. This is the
+recommended entry point for screening large compound sets.
 
 ```python
-df = dock_batch(
-    smiles_list,
-    pocket_pdb,
-    n_conformers=1,         # 1 conformer for initial screen
-    exhaustiveness=4,       # minimum reasonable exhaustiveness
+df = dock_screen(
+    smiles_list,                        # list of SMILES
+    fragment_csv="data/structures/sgc_fragments.csv",
+    n_conformers=3,                     # conformer runs per compound
+    exhaustiveness=3,                   # Vina exhaustiveness
+    dock_unassigned=True,               # dock unassigned compounds against pocket A
+    checkpoint_dir="checkpoints/dock",  # per-pocket parquet checkpoints
 )
 ```
 
-**Chunk large lists to get partial results:**
+**Available pockets:** A, C, D (pocket B excluded due to poor pose reliability).
+
+**Pocket assignment:** uses PocketAssigner (fragment substructure matching +
+ECFP4 Tanimoto similarity). Compounds that don't match any pocket are docked
+against pocket A by default (`dock_unassigned=True, default_pocket="A"`).
+
+**Output columns:**
+
+| Column              | Description                                          |
+|---------------------|------------------------------------------------------|
+| `smiles`            | Input SMILES                                          |
+| `pocket`            | Assigned pocket (A, C, or D)                          |
+| `score`             | Best (min) Vina score across conformers (kcal/mol)    |
+| `ligand_efficiency` | -score / heavy_atom_count                             |
+| `n_heavy_atoms`     | Heavy atom count                                      |
+| `mw`                | Molecular weight                                      |
+| `score_std`         | Std dev of scores across conformer runs               |
+| `pocket_tanimoto`   | Max Tanimoto to fragments in the assigned pocket      |
+| `pocket_substruct`  | Whether the compound contains a pocket fragment       |
+| `status`            | "ok" or error message                                 |
+
+**Checkpointing:** when `checkpoint_dir` is set, each pocket group writes
+a parquet file on completion (e.g. `dock_A.parquet`). If the file exists on
+a subsequent run, that pocket is loaded from disk instead of re-docked. This
+allows restarting interrupted runs without losing progress.
+
+**Runtime estimate:** ~7 sec/compound at exhaustiveness=3, n_conformers=3.
+For 6K compounds routed to one pocket each, expect ~12 hours.
+
+**Two-stage workflow:**
 
 ```python
-import pandas as pd
-
-POCKET = "data/structures/TGT_TBXT_A_pocket.pdb"
-chunk_size = 100
-all_results = []
-
-for i in range(0, len(smiles_list), chunk_size):
-    chunk = smiles_list[i : i + chunk_size]
-    df = dock_batch(chunk, POCKET)
-    all_results.append(df)
-    print(f"Done {min(i + chunk_size, len(smiles_list))}/{len(smiles_list)}")
-
-results = pd.concat(all_results, ignore_index=True)
-results.to_csv("docking_scores.csv", index=False)
-```
-
-**Two-stage workflow for large libraries:**
-
-```python
-# Stage 1: fast screen (1 conformer, low exhaustiveness)
-df_fast = dock_batch(smiles_list, POCKET, n_conformers=1, exhaustiveness=4)
+# Stage 1: fast screen
+df = dock_screen(smiles_list, exhaustiveness=3, checkpoint_dir="ckpt/fast")
 
 # Stage 2: re-dock top hits with higher accuracy
-top_smiles = df_fast.nsmallest(50, "score")["smiles"].tolist()
-df_refined = dock_batch(top_smiles, POCKET, n_conformers=3, exhaustiveness=32)
+top = df.nsmallest(50, "score")
+for pocket in top["pocket"].unique():
+    pocket_smiles = top.loc[top["pocket"] == pocket, "smiles"].tolist()
+    df_refined = dock_batch(
+        pocket_smiles,
+        f"data/structures/TGT_TBXT_{pocket}_pocket.pdb",
+        n_conformers=3,
+        exhaustiveness=32,
+    )
 ```
 
 ## Pocket PDB format
