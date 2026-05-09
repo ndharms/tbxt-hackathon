@@ -31,7 +31,6 @@ style: |
 <!-- _class: title -->
 
 # TBXT Hit Identification
-## End-to-end virtual screening pipeline
 
 **Nate Harms, Raymond Gasper**
 TBXT Hackathon — May 9, 2026 — Boston
