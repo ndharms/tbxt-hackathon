@@ -2020,6 +2020,15 @@ wheels = [
 ]
 
 [[package]]
+name = "meeko"
+version = "0.7.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/46/9d/342bc5d09ba070496738e6b7dd37e2918ea8264df3a99bb1ed8a5a464dda/meeko-0.7.1.tar.gz", hash = "sha256:e3f4ca3a66db17a95d75905fa7a1bfb73971d2f16ec52eb68e5226bafe120b2d", size = 1427070, upload-time = "2025-10-23T00:08:06.492Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cb/c8/19f80438c2f285a109a42fde50a41ec7c06d7dfd257954da8d9c4e17677d/meeko-0.7.1-py3-none-any.whl", hash = "sha256:e50f5fdb9f94f44e6ee20616936cf033be9c93c7825bd69493a9cd9a3c5dc28d", size = 293954, upload-time = "2025-10-23T00:08:05.168Z" },
+]
+
+[[package]]
 name = "mhfp"
 version = "1.9.6"
 source = { registry = "https://pypi.org/simple" }
@@ -3081,6 +3090,15 @@ wheels = [
 ]
 
 [[package]]
+name = "py3dmol"
+version = "2.5.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/39/7a/d7be826cf33a917f4ff78fd07237368dfdf21e09ab463b9de9a33c61ec0c/py3dmol-2.5.4.tar.gz", hash = "sha256:6142e1605f51e0fd8ec000db5ab045a90a08bc6147176735631a20be301dd19d", size = 7851, upload-time = "2026-01-22T13:33:49.8Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/25/7d/cea3531f77df694ac7f169378250d85f19f69b09a5f4fa45f650837ae7cc/py3dmol-2.5.4-py2.py3-none-any.whl", hash = "sha256:32806726b5310524a2b5bfee320737f7feef635cafc945c991062806daa9e43a", size = 7154, upload-time = "2026-01-22T13:33:48.659Z" },
+]
+
+[[package]]
 name = "pyarrow"
 version = "24.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3893,6 +3911,7 @@ dependencies = [
     { name = "jupyter" },
     { name = "loguru" },
     { name = "matplotlib" },
+    { name = "meeko" },
     { name = "msoffcrypto-tool" },
     { name = "numpy" },
     { name = "openpyxl" },
@@ -3900,6 +3919,7 @@ dependencies = [
     { name = "pacmap" },
     { name = "pandas" },
     { name = "polars" },
+    { name = "py3dmol" },
     { name = "pyarrow" },
     { name = "rdkit" },
     { name = "scikit-learn" },
@@ -3908,6 +3928,7 @@ dependencies = [
     { name = "tqdm" },
     { name = "typeguard" },
     { name = "umap-learn" },
+    { name = "vina" },
     { name = "xgboost" },
 ]
 
@@ -3927,6 +3948,7 @@ requires-dist = [
     { name = "jupyter", specifier = ">=1.0.0" },
     { name = "loguru", specifier = ">=0.7.0" },
     { name = "matplotlib", specifier = ">=3.9.0" },
+    { name = "meeko", specifier = ">=0.6" },
     { name = "msoffcrypto-tool", specifier = ">=5.4.0" },
     { name = "numpy", specifier = ">=1.26.0" },
     { name = "openpyxl", specifier = ">=3.1.0" },
@@ -3934,6 +3956,7 @@ requires-dist = [
     { name = "pacmap", specifier = ">=0.7" },
     { name = "pandas", specifier = ">=2.2.0" },
     { name = "polars", specifier = ">=1.20" },
+    { name = "py3dmol", specifier = ">=2.0.0" },
     { name = "pyarrow" },
     { name = "rdkit", specifier = ">=2024.3.1" },
     { name = "scikit-learn", specifier = ">=1.5.0" },
@@ -3942,6 +3965,7 @@ requires-dist = [
     { name = "tqdm", specifier = ">=4.66.0" },
     { name = "typeguard", specifier = ">=4" },
     { name = "umap-learn", specifier = ">=0.5.12" },
+    { name = "vina", specifier = ">=1.2.5" },
     { name = "xgboost", specifier = ">=2.1.0" },
 ]
 
@@ -4168,6 +4192,24 @@ wheels = [
 ]
 
 [[package]]
+name = "vina"
+version = "1.2.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "setuptools" },
+    { name = "wheel" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d2/2a/6746ef5e57b1c643e9fb24ad9e4fa520add7338736d50954e0fbc12ae52e/vina-1.2.7.tar.gz", hash = "sha256:79e5288d10207b85f20adac3dd6f4708eac761c2d8070fbad76ff997cf48e4f9", size = 89176, upload-time = "2025-02-26T03:23:17.85Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b4/89/b8cab012500fa7fcb1d868ddf23a42a66953dae8a4cce49105ec64f8d436/vina-1.2.7-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:46edb24ad831f586c68bd582f9c0675fb1abf5e49b7e317336b5c1b26949c7de", size = 6844204, upload-time = "2025-02-26T03:22:54.206Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/4c/a1a2cf6c99d4c8564172191cf662f81fa8460cb8c583d4d3e52e5db907dd/vina-1.2.7-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:43edeaba01f22b96211a71516fbb2ee73815781679eca4805df750770868adef", size = 7009728, upload-time = "2025-02-26T03:22:57.835Z" },
+    { url = "https://files.pythonhosted.org/packages/36/1f/45ee007da0d3dc791c3dc7143f038221360f3305aa9152acb0fbacb26139/vina-1.2.7-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a6e46560e50e693fb29883b82be8d9a4d74207b4464cfedf2bd5235192f4eb3d", size = 6855509, upload-time = "2025-02-26T03:23:03.342Z" },
+    { url = "https://files.pythonhosted.org/packages/af/eb/667b855ff38962edcce7ad32007765e9cebe9e7d5d4ea3e6f901231eb9a6/vina-1.2.7-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:a8e1ab100e6a6537b6f47d103843af41e391b1cd0afbe87c6e4d4f2f78d5a2f0", size = 7023498, upload-time = "2025-02-26T03:23:06.12Z" },
+]
+
+[[package]]
 name = "wcwidth"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -4201,6 +4243,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/2c/41/aa4bf9664e4cda14c3b39865b12251e8e7d239f4cd0e3cc1b6c2ccde25c1/websocket_client-1.9.0.tar.gz", hash = "sha256:9e813624b6eb619999a97dc7958469217c3176312b3a16a4bd1bc7e08a46ec98", size = 70576, upload-time = "2025-10-07T21:16:36.495Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/34/db/b10e48aa8fff7407e67470363eac595018441cf32d5e1001567a7aeba5d2/websocket_client-1.9.0-py3-none-any.whl", hash = "sha256:af248a825037ef591efbf6ed20cc5faa03d3b47b9e5a2230a529eeee1c1fc3ef", size = 82616, upload-time = "2025-10-07T21:16:34.951Z" },
+]
+
+[[package]]
+name = "wheel"
+version = "0.47.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "packaging" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/39/62/75f18a0f03b4219c456652c7780e4d749b929eb605c098ce3a5b6b6bc081/wheel-0.47.0.tar.gz", hash = "sha256:cc72bd1009ba0cf63922e28f94d9d83b920aa2bb28f798a31d0691b02fa3c9b3", size = 63854, upload-time = "2026-04-22T15:51:27.727Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/87/1b/9e33c09813d65e248f7f773119148a612516a4bea93e9c6f545f78455b7c/wheel-0.47.0-py3-none-any.whl", hash = "sha256:212281cab4dff978f6cedd499cd893e1f620791ca6ff7107cf270781e587eced", size = 32218, upload-time = "2026-04-22T15:51:26.296Z" },
 ]
 
 [[package]]
