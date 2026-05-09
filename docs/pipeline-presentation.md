@@ -258,16 +258,26 @@ The site-localization filter is what cut ~90–95% of Boltz survivors. Affinity 
 
 ---
 
-## Recommended compounds *(mock — to be populated)*
+## Final 4
 
-Final 4 selected by **Vina rank order** within each pocket (2× A, 2× F; G reallocated after zero site-QC survivors). All four cleared the same pipeline — XGBoost rank → pocket assignment → Boltz site QC → Zenodo novelty → Vina + anchor-residue check.
+Selected by **Vina rank order** within each pocket (2× A, 2× F; G reallocated after zero site-QC survivors). All four cleared the same pipeline — XGBoost rank → pocket assignment → Boltz site QC → Zenodo novelty → Vina + anchor-residue check.
 
-| Pocket | onepot ID | SMILES | Scaffold |
-|:---:|:---|:---|:---|
-| A | `TBD` | `TBD` | thiazole-acetamide |
-| A | `TBD` | `TBD` | morpholino-thiazole |
-| F | `TBD` | `TBD` | benzyl-ether benzoic acid |
-| F | `TBD` | `TBD` | compact bicyclic |
+<div class="tiny">
+
+| Pocket | onepot ID | SMILES |
+|:---:|:---|:---|
+| A | `SM-AFB2BKPV` | `O=C(c1ccc2c(c1)CCCO2)N1CCC2(CC1)CC(=O)N(c1ccccc1)C2=O` |
+| A | `SM-ZBGNCUEF` | `O=C(Cc1ccccc1)Nc1cccc(NC(=O)NCc2ccc3ncsc3c2)c1` |
+| F | `SM-QZJTGDW5` | `Clc1cccc(Oc2nnc(Cc3ccccc3)c3ccccc23)c1` |
+| F | `SM-68MRL1C4` | `O=C(Nc1cccc(OCc2ccccc2)c1)N1Cc2ccc(O)cc2C(O)C1` |
+
+</div>
+
+<div class="small">
+
+Pocket labels follow the SGC TEP datasheet (pocket F = Newman D).
+
+</div>
 
 ---
 
@@ -277,24 +287,31 @@ Final 4 selected by **Vina rank order** within each pocket (2× A, 2× F; G real
 
 ---
 
-## Appendix A — Full submission evidence table *(mock)*
+## Appendix A — Final 4 submission
 
 <div class="tiny">
 
-| Rank | onepot ID | SMILES | Pocket | Scaffold | Boltz ΔG (kcal/mol) | Vina (kcal/mol) | `p_binder` | Anchor contact | Rationale |
-|:---:|:---|:---|:---:|:---|:---:|:---:|:---:|:---|:---|
-| **1** | `OP-000000001` | `TBD` | A | thiazole-acetamide | −8.4 | −8.9 | 0.87 | R180 H-bond (2.8 Å) | Top XGBoost rank in A; matches 8A7N pose; L91/V123/I125/V173 hydrophobic contacts. |
-| **2** | `OP-000000002` | `TBD` | A | morpholino-thiazole | −8.1 | −8.5 | 0.81 | R180 H-bond (3.0 Å) | Scaffold-distinct A-pocket hit; morpholine O accepts from R180; pose matches 5QSD. |
-| **3** | `OP-000000003` | `TBD` | F | benzyl-ether benzoic acid | −8.8* | −7.9 | 0.71 | Y88 (3.0 Å) · D177 proximity | F-pocket hit; matches K2P (5QSA) pharmacophore; benzyl ether + carboxylate. |
-| **4** | `OP-000000004` | `TBD` | F | compact bicyclic | −8.6* | −7.3 | 0.63 | Y88 (3.2 Å) · D177 proximity | Second F-pocket hit; G slot reallocated; scaffold-diverse from #3; MW < 400. |
+| Pocket | onepot ID | SMILES | Notes |
+|:---:|:---|:---|:---|
+| A | `SM-AFB2BKPV` | `O=C(c1ccc2c(c1)CCCO2)N1CCC2(CC1)CC(=O)N(c1ccccc1)C2=O` | Amide donor for R180; extended hydrophobic vector for L91/V123/I125/V173. |
+| A | `SM-ZBGNCUEF` | `O=C(Cc1ccccc1)Nc1cccc(NC(=O)NCc2ccc3ncsc3c2)c1` | Multiple donors/acceptors around the urea; benzothiazole fills the hydrophobic cluster. |
+| F | `SM-QZJTGDW5` | `Clc1cccc(Oc2nnc(Cc3ccccc3)c3ccccc23)c1` | Compact aromatic fitting the induced Y88/D177 cavity; phthalazine N's near Y88. |
+| F | `SM-68MRL1C4` | `O=C(Nc1cccc(OCc2ccccc2)c1)N1Cc2ccc(O)cc2C(O)C1` | Polar head for Y88/D177; benzyloxy tail extends into the buried cavity. |
 
 </div>
 
 <div class="small">
 
-*Pocket F Boltz ΔG is inflated by burial + induced-fit, so it's treated as a pose-only signal rather than an absolute score.
+**Common filter pass (all 4):**
+- XGBoost deployment ensemble rank (high p_binder)
+- Fragment Tanimoto ≥ 0.35 in assigned pocket
+- Boltz pose placed at the intended site (site-localization QC)
+- ECFP4 Tanimoto ≤ 0.85 to Zenodo SPR set (novelty)
+- AutoDock Vina anchor-residue contact (R180 for A; Y88 ± D177 for F)
+- Chordoma physchem (LogP ≤ 6, HBD ≤ 6, HBA ≤ 12, MW ≤ 600)
 
-All 4 satisfy: Chordoma physchem (LogP ≤ 6, HBD ≤ 6, HBA ≤ 12, MW ≤ 600), max Tanimoto to Naar set < 0.6, and 4 distinct Bemis–Murcko scaffolds.
+Within-pocket ordering: Vina rank.
+Pocket labels follow the SGC TEP datasheet (**F = Newman D**).
 
 </div>
 
