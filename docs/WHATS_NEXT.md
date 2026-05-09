@@ -84,22 +84,55 @@ embedding probes — this is a data ceiling, not a model ceiling.
 - Complementary signal for ranking, not a replacement for the binary classifier
 - Saved models: `models/pairwise_classifier/`
 
+### XGBoost retrained on PaCMAP-KMeans6 folds (`models/xgb_classifier_pacmap_folds/`)
+
+To get an apples-to-apples comparison with Ray's models, we retrained Nate's XGBoost
+classifier (same MACCS+Desc features, same 4.5/3.5 labels) on Ray's PaCMAP-KMeans6
+folds (5-fold CV on folds 0,1,2,3,5; fold 4 as structural holdout).
+
+| Fold | AUC-ROC | AUC-PR | F1 | n_val | n_pos |
+|---|---|---|---|---|---|
+| 0 | 0.434 | 0.070 | 0.000 | 184 | 9 |
+| 1 | 0.728 | 0.415 | 0.463 | 233 | 53 |
+| 2 | 0.556 | 0.126 | 0.000 | 129 | 12 |
+| 3 | 0.824 | 0.471 | 0.225 | 332 | 64 |
+| 5 | 0.580 | 0.297 | 0.250 | 178 | 14 |
+| **Mean** | **0.625** | **0.276** | **0.188** | — | — |
+
+**Holdout (fold 4):** AUROC 0.567, AUPRC 0.055, Brier 0.063 (baseline 0.038).
+Only 4 positives in holdout — metrics are extremely noisy.
+
+**Optimal OOF threshold:** 0.254 (Precision 0.391, Recall 0.599, F1 0.473)
+
 ### How the models compare
 
-The two model sets are **not directly comparable** due to different label thresholds
-(3.837 vs 4.5), fold strategies (PaCMAP-KMeans6 vs Butina), and feature sets
-(Morgan 2048 vs MACCS+Desc). Both tell the same story: classification is possible
-at modest performance (AUROC 0.65-0.79), regression is not.
+| Model | Folds | Label threshold | OOF AUROC | OOF AUC-PR | Holdout AUROC |
+|---|---|---|---|---|---|
+| XGBoost (Butina folds) | 5-fold Butina | 4.5 / 3.5 | **0.791** | **0.431** | n/a |
+| XGBoost (PaCMAP folds) | 5+1 PaCMAP-KMeans6 | 4.5 / 3.5 | 0.625 | 0.276 | 0.567 |
+| CheMeleon no_val (Ray) | 5+1 PaCMAP-KMeans6 | 3.837 (Q3) | 0.655 | n/a | 0.475 |
+
+The PaCMAP folds are substantially harder than Butina folds: OOF AUC-PR drops from
+0.431 to 0.276. This is expected — PaCMAP-KMeans6 creates structurally distinct folds
+that break scaffold-level correlations, while Butina clusters keep similar scaffolds
+together (easier leakage). The per-fold variance is also extreme: fold 3 (AUC-PR 0.471)
+vs fold 0 (AUC-PR 0.070), driven by class imbalance across folds (fold 0 has only 9
+positives vs fold 3 with 64).
+
+The holdout fold 4 is particularly challenging: only 4 positives with Nate's stricter
+labels. Neither model can meaningfully discriminate at this sample size.
 
 ### How we should use them
 
-1. **Primary screener**: Nate's XGBoost binary classifier (AUC-PR 0.431) for
-   triaging onepot compounds. It uses a stricter activity threshold and is better
-   calibrated at the decision boundary.
-2. **Soft prior**: Ray's chemeleon_no_val (OOF AUROC 0.655) as a second opinion.
-   Compounds that both models flag as active are higher confidence.
-3. **Ranking signal**: Nate's pairwise classifier for ordering within a shortlist.
-4. **NOT for regression**: no model should be used to predict absolute pKD.
+1. **Primary screener**: Nate's XGBoost binary classifier with Butina folds
+   (AUC-PR 0.431) for triaging onepot compounds. Its folds are less demanding but
+   the model is better calibrated at the decision boundary.
+2. **Conservative estimate**: The PaCMAP-fold model (AUC-PR 0.276) gives a more
+   honest upper bound on how well this classifier will generalize to truly novel
+   chemistry. Expect ~28% precision-recall on structurally distant compounds.
+3. **Soft prior**: Ray's chemeleon_no_val (OOF AUROC 0.655) as a second opinion.
+4. **Ranking signal**: Nate's pairwise classifier for ordering within a shortlist.
+5. **NOT for regression**: no model should be used to predict absolute pKD.
 
 ---
 
@@ -152,15 +185,16 @@ at modest performance (AUROC 0.65-0.79), regression is not.
 
 ### Immediate (merge and run)
 
-- [ ] **Merge `nate/downfilter-pipeline` to main** and start the full OnePot
-      downfilter run. This is the critical path. Even a partial run (first 100M rows)
-      would give us compounds to work with.
-- [ ] **Merge `nate/xgboost-poc` to main** so the XGBoost classifier is available
-      for scoring the downfiltered catalog.
-- [ ] **Merge `nate/vina-docking` to main** so docking is ready when candidates appear.
+- [x] **Merge `nate/downfilter-pipeline` to main** — DONE
+- [x] **Merge `nate/xgboost-poc` to main** — DONE
+- [x] **Merge `nate/vina-docking` to main** — DONE
 - [ ] **Reconcile `origin/prot` with main.** The prot branch diverges heavily
       (deletes most of main's content). The useful content (Boltz pose validation,
       nomenclature notes) should be extracted, not merged wholesale.
+- [ ] **Start the full OnePot downfilter run.** This is the critical path.
+- [x] **Retrain XGBoost classifier with PaCMAP-KMeans6 folds** for direct
+      comparison with Ray's models on the same splits (`scripts/build_xgb_classifier_pacmap_folds.py`).
+      Output: `models/xgb_classifier_pacmap_folds/`
 
 ### Parallel work while downfilter runs
 
