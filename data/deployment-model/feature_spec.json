@@ -1,41 +1,84 @@
 {
-  "fingerprint": {
-    "type": "maccs",
-    "n_bits": 167
-  },
-  "pocket": {
-    "pockets": [
-      "A",
-      "B",
-      "C",
-      "D"
+  "deploy_xgb": {
+    "fingerprint": {
+      "type": "maccs",
+      "n_bits": 167
+    },
+    "pocket": {
+      "pockets": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "per_pocket_columns": [
+        "tanimoto",
+        "substruct"
+      ],
+      "n_cols": 8,
+      "fragments_csv": "data/structures/sgc_fragments.csv",
+      "radius": 2,
+      "threshold": 0.35
+    },
+    "physchem": {
+      "columns": [
+        "mw",
+        "logp",
+        "hbd",
+        "hba",
+        "heavy_atoms",
+        "num_rings",
+        "tpsa",
+        "rotatable_bonds"
+      ],
+      "n_cols": 8
+    },
+    "column_order": [
+      "maccs",
+      "pocket",
+      "physchem"
     ],
-    "per_pocket_columns": [
-      "tanimoto",
-      "substruct"
-    ],
-    "n_cols": 8,
-    "fragments_csv": "data/structures/sgc_fragments.csv",
-    "radius": 2,
-    "threshold": 0.35
+    "total_cols": 183
   },
-  "physchem": {
-    "columns": [
-      "mw",
-      "logp",
-      "hbd",
-      "hba",
-      "heavy_atoms",
-      "num_rings",
-      "tpsa",
-      "rotatable_bonds"
+  "morgan_xgb": {
+    "fingerprint": {
+      "type": "morgan",
+      "n_bits": 2048,
+      "radius": 2
+    },
+    "physchem": {
+      "columns": [
+        "mw",
+        "logp",
+        "hbd",
+        "hba",
+        "heavy_atoms",
+        "num_rings",
+        "tpsa",
+        "rotatable_bonds"
+      ],
+      "n_cols": 8
+    },
+    "column_order": [
+      "morgan",
+      "physchem"
     ],
-    "n_cols": 8
+    "total_cols": 2056
   },
-  "column_order": [
-    "maccs",
-    "pocket",
-    "physchem"
-  ],
-  "total_cols": 183
+  "chemeleon": {
+    "input": "canonical_smiles",
+    "encoder": "chemprop BondMessagePassing with CheMeleon pretrained weights",
+    "head": "BinaryClassificationFFN (2 hidden layers, hidden_dim=256, dropout=0.2)",
+    "training": "no-val, 15 epochs, batch_size=32, lr=1e-3"
+  },
+  "ensemble": {
+    "models": [
+      "deployment_xgb_maccs",
+      "morgan_xgb",
+      "chemeleon"
+    ],
+    "aggregation": "mean of per-model rank-normalized scores",
+    "rank_norm": "scipy.stats.rankdata(-p) / N  -> lower is rank 1, higher is rank N",
+    "score_direction": "higher rank_score == more likely binder"
+  }
 }
