@@ -38,38 +38,36 @@ TBXT Hackathon — May 9, 2026 — Boston
 
 Target: human TBXT (Brachyury) DBD, residues 42–219
 Source: onepot 3.4B CORE catalog
-Submission: 4 ranked SMILES across pockets A, F, G
+Submission: 4 ranked SMILES (pockets A and F — see Boltz QC)
 
 ---
 
 ## Strategy
 
-**"Traditional" modern virtual screening approach**
-
-**Every signal on this target is weak. Stack them; filter aggressively.**
+Standard modern virtual screening: no single signal is strong enough on this target to rank candidates alone, so we combine several and filter at each stage.
 
 <div class="two-col">
 
 <div>
 
-**Weak, independent signals:**
+**Signals used:**
 
-- Zenodo SPR — ~0.65 AUROC ceiling
-- Boltz — pose OK at 3/4 sites
-- Vina — classical, false positives
-- Fragment similarity — uneven
-- Physchem + risk — necessary only
+- Zenodo SPR — ranker, ~0.65 AUROC ceiling
+- Boltz — pose and site localization
+- Vina — orthogonal physics
+- Fragment substructure / similarity
+- Physchem + PAINS + synthesis risk
 
 </div>
 
 <div>
 
-**Stack them:**
+**How they're combined:**
 
-1. Zenodo → ranker, not predictor
-2. Boltz → pose, not raw ΔG
-3. Vina → orthogonal + anchor check
-4. Physchem + PAINS + synthesis risk throughout
+1. Zenodo ML model as a ranker, not a predictor
+2. Boltz used primarily for pose, not raw ΔG
+3. Vina for cross-check and anchor-residue contact
+4. Physchem + PAINS + synthesis risk applied at every stage
 
 </div>
 </div>
@@ -86,12 +84,12 @@ Submission: 4 ranked SMILES across pockets A, F, G
 DNA-binding domain (res 42–219), PDB 6F59
 SGC TEP identifies 5 fragment pockets; we target **A, F, G**
 
-| TEP pocket | Anchor residues | Frags | Slots |
-|---|---|---|---|
-| **A / A'** | R180, V123, L91, I125, V173, I182 | 26 | 2 |
-| **G** | R54, E48, E50, L51, K76 | 10 | 1 |
-| **F** | Y88, D177, V173, I182 | 4 | 1 (spec) |
-| ~~D~~ | G112, H100, P115 | 5 | 0 (bad Boltz pose) |
+| TEP pocket | Anchor residues | Frags | Planned slots | QC survivors |
+|---|---|---|---|---|
+| **A / A'** | R180, V123, L91, I125, V173, I182 | 26 | 2 → 3 | **70** |
+| **G** | R54, E48, E50, L51, K76 | 10 | 1 → 0 | **0** (no pose QC) |
+| **F** | Y88, D177, V173, I182 | 4 | 1 | **7** |
+| ~~D~~ | G112, H100, P115 | 5 | 0 (bad Boltz pose) | — |
 
 </div>
 
@@ -99,9 +97,9 @@ SGC TEP identifies 5 fragment pockets; we target **A, F, G**
 
 **Why these pockets** (superposed all PDBs, scored contacts vs Newman signatures):
 
-- **A (2 slots)** — most de-risked: 26 fragment hits, the only site Newman progressed to µM SPR (thiazole → 8A7N, 14–20 µM). Clean Boltz pose vs 5QS2.
-- **G (1 slot)** — 10 hits, largest G177D hotspot. Polar pocket near C-term helix; DNA-interface-adjacent angle distinct from A.
-- **F (1 slot, speculative)** — novel MoA: Y88 is the P300-interaction residue; pocket mediates KDM6 co-activator recruitment. Engages G177D variant directly. Induced, buried → oracle weaker, so lean on fragment similarity.
+- **A (2 slots)** — most fragment evidence: 26 hits, the only site Newman progressed to µM SPR (thiazole → 8A7N, 14–20 µM). Boltz reproduces the crystal pose vs 5QS2.
+- **G (1 slot)** — 10 hits, largest G177D hotspot. Polar pocket near C-term helix; angle adjacent to DNA interface, distinct from A.
+- **F (1 slot, speculative)** — potential novel MoA: Y88 is the P300-interaction residue; pocket mediates KDM6 co-activator recruitment. Engages the G177D variant. Induced and buried, so we rely more on fragment similarity than Boltz scores.
 - **D (dropped)** — Boltz pose tilted vs 5QS0 crystal, only 4–5 hits, DNA-competitive angle already covered by G.
 
 <span style="color:#666">Pocket IDs follow the SGC TEP datasheet.</span>
@@ -135,15 +133,22 @@ SGC TEP identifies 5 fragment pockets; we target **A, F, G**
                           ▼
          [5] Boltz pose prediction + pose QC
                (site-localization rejects ~90–95%)
+               QC survivors: **A: 70 · F: 7 · G: 0**
                           ▼
          [5b] Exclude Zenodo-similar compounds
                (ECFP4 Tanimoto > 0.85 to any SPR compound)
                           ▼
          [6] AutoDock Vina + anchor-residue check
-               R180 (A) · E48/R54 (G) · Y88 (F)
+               R180 (A) · Y88 (F) · E48/R54 (G — no survivors)
                           ▼
-                 Final 4 (2·A, 1·G, 1·F)
+                 Final 4 (2·A, 2·F — G slot reallocated)
 ```
+
+<div class="small">
+
+Pocket G produced zero compounds that passed Boltz site-localization QC. Pocket A yielded 70 survivors; pocket F yielded 7. Slot plan updated: **2× A, 2× F**.
+
+</div>
 
 ---
 
@@ -155,20 +160,20 @@ SGC TEP identifies 5 fragment pockets; we target **A, F, G**
 
 <div>
 
-**The dataset was hard to model.**
+**The dataset is noisy.**
 
 - Batch date alone explains R² ≈ 0.15 of pKD variance
 - ~30% activity cliffs at Tanimoto ≥ 0.7; replicate std ≈ 0.92 pKD (~100× KD)
-- Regression: all attempts negative R² — data ceiling, not model ceiling
-- Tried **CheMeleon chemistry foundation model**; competitive signal but kicked out under time pressure
+- Regression: all attempts had negative R² — a data ceiling, not a model ceiling
+- Tried the **CheMeleon chemistry foundation model**; competitive but dropped for time
 
-**What worked: reframe as a binary ranker.**
+**What we settled on: treat it as a binary ranker.**
 
-- **Excluded mid-range KD** (pKD 3–5 gray zone) — unlearnable with ~0.9 pKD replicate noise
-- **PaCMAP + KMeans6 folds** — structurally-distinct splits, not scaffold-leaky Butina
-- **12-booster XGBoost ensemble** (2 fingerprints × 6 leave-one-fold-out) on the cleaned label
+- **Excluded the mid-range KD gray zone** (pKD 3–5) — inside replicate noise
+- **PaCMAP + KMeans6 folds** for structurally-distinct splits (Butina folds leak scaffolds)
+- **12-booster XGBoost ensemble** (2 fingerprints × 6 leave-one-fold-out) on the filtered label
 
-Used as a **ranker**, not a calibrated probability. Metrics in appendix.
+Used as a ranker, not a calibrated probability. Metrics in appendix.
 
 </div>
 
@@ -178,7 +183,7 @@ Used as a **ranker**, not a calibrated probability. Metrics in appendix.
 
 <div class="small">
 
-**Training compounds in PaCMAP space**, colored by KMeans6 fold assignment. Structurally-distinct clusters — the ensemble trains 12 boosters leave-one-fold-out so every compound is scored by a booster that never saw it.
+**Training compounds in PaCMAP space**, colored by KMeans6 fold. The ensemble trains 12 boosters leave-one-fold-out so every compound is scored by a booster that did not see it.
 
 </div>
 </div>
@@ -192,15 +197,15 @@ Used as a **ranker**, not a calibrated probability. Metrics in appendix.
 
 <div>
 
-**The right metric for a ranker is: where do the true positives land?**
+**For a ranker, the useful question is where the true positives land.**
 
-Evaluated on the try4 holdout (fold 3, n=186, 29 positives, 15.6% prevalence). For each positive, compute its **fractional rank** among the 186 holdout compounds after sorting by predicted score. Random = 0.5, perfect = 0.
+Evaluated on the try4 holdout (fold 3, n=186, 29 positives, 15.6% prevalence). For each positive, compute its fractional rank among the 186 holdout compounds after sorting by predicted score. Random = 0.5, perfect = 0.
 
-- `maccs_fp_pocket_phys` (the deployment recipe): **median rank 0.124, mean 0.208** — true positives land in the top ~12% on average
-- Tightest distribution of all 9 variants tested
-- Only variant where non-FP features materially contribute (86% MACCS / 6% pocket / 8% physchem importance)
+- `maccs_fp_pocket_phys` (the deployment recipe): median rank 0.124, mean 0.208 — positives land in roughly the top ~12% on average
+- Tightest distribution among the 9 variants tested
+- Non-fingerprint features contribute modestly (86% MACCS / 6% pocket / 8% physchem importance)
 
-Morgan sharpens the *very top* of the ranking but has a long right tail. MACCS+pocket+physchem is wider at the top and has no catastrophic misses. Stacking both captures both behaviors.
+Morgan ranks a handful of positives very high but has a long right tail. MACCS + pocket + physchem is more evenly distributed. Including both in the ensemble covers both behaviors.
 
 </div>
 
@@ -247,24 +252,22 @@ Morgan sharpens the *very top* of the ranking but has a long right tail. MACCS+p
 </div>
 </div>
 
-**Rejecting these off-site hits is the filter that cut ~90–95% of Boltz survivors.** Affinity score alone would have kept the compound; the pose betrays it. Every submission has been visually pose-checked at its intended pocket.
+The site-localization filter is what cut ~90–95% of Boltz survivors. Affinity score alone would have retained compounds that Boltz placed off-site.
+
+**Per-pocket QC outcome (TEP labels):** A = 70 · F = 7 · G = 0. Pocket G was in the plan but no compound survived site localization there.
 
 ---
 
 ## Recommended compounds *(mock — to be populated)*
 
-| Rank | Pocket | SMILES | Scaffold | Rationale |
-|:---:|:---:|:---|:---|:---|
-| **1** | A | `TBD` | thiazole-acetamide | Top XGBoost rank in A; Boltz pose recapitulates 8A7N R180 H-bond; Vina −8.9 kcal/mol. |
-| **2** | A | `TBD` | morpholino-thiazole | Scaffold-diverse A-pocket hit; strong R180 + L91/V123 hydrophobic cluster engagement. |
-| **3** | G | `TBD` | aryl sulfonamide | Polar head engages E48 + R54; highest-ranked G-pocket survivor after pose QC. |
-| **4** | F | `TBD` | compact bicyclic | Speculative novel-MoA slot; Y88 contact + D177 proximity; fragment-Tanimoto-led. |
+Final 4 selected by **Vina rank order** within each pocket (2× A, 2× F; G reallocated after zero site-QC survivors). All four cleared the same pipeline — XGBoost rank → pocket assignment → Boltz site QC → Zenodo novelty → Vina + anchor-residue check.
 
-<div class="small">
-
-**Each row is backed by convergent evidence:** XGBoost `p_binder`, fragment Tanimoto ≥ 0.35 in assigned pocket, Boltz pose matching Newman co-crystal, Vina score within 1 kcal/mol of per-pocket best, anchor-residue contact, Chordoma physchem satisfied, Max Tanimoto to Naar set < 0.6.
-
-</div>
+| Pocket | onepot ID | SMILES | Scaffold |
+|:---:|:---|:---|:---|
+| A | `TBD` | `TBD` | thiazole-acetamide |
+| A | `TBD` | `TBD` | morpholino-thiazole |
+| F | `TBD` | `TBD` | benzyl-ether benzoic acid |
+| F | `TBD` | `TBD` | compact bicyclic |
 
 ---
 
@@ -280,16 +283,16 @@ Morgan sharpens the *very top* of the ranking but has a long right tail. MACCS+p
 
 | Rank | onepot ID | SMILES | Pocket | Scaffold | Boltz ΔG (kcal/mol) | Vina (kcal/mol) | `p_binder` | Anchor contact | Rationale |
 |:---:|:---|:---|:---:|:---|:---:|:---:|:---:|:---|:---|
-| **1** | `OP-000000001` | `TBD` | A | thiazole-acetamide | −8.4 | −8.9 | 0.87 | R180 H-bond (2.8 Å) | Top XGBoost rank A; reproduces 8A7N pose; L91/V123/I125/V173 hydrophobic contact cluster. |
-| **2** | `OP-000000002` | `TBD` | A | morpholino-thiazole | −8.1 | −8.5 | 0.81 | R180 H-bond (3.0 Å) | Scaffold-distinct A-pocket hit; morpholine O accepts from R180 guanidinium; clean Boltz pose vs 5QSD. |
-| **3** | `OP-000000003` | `TBD` | G | aryl sulfonamide | −7.6 | −7.9 | 0.74 | E48 (salt bridge) · R54 (3.1 Å) | Polar head reaches E48/R54 hotspot; pose QC passes vs 5QS6; DNA-interface-adjacent vector. |
-| **4** | `OP-000000004` | `TBD` | F | compact bicyclic | −8.8* | −7.3 | 0.63 | Y88 (3.2 Å) · D177 proximity | Novel-MoA speculative slot; high fragment Tanimoto to K2P (5QSA); MW < 400 fits buried cavity. |
+| **1** | `OP-000000001` | `TBD` | A | thiazole-acetamide | −8.4 | −8.9 | 0.87 | R180 H-bond (2.8 Å) | Top XGBoost rank in A; matches 8A7N pose; L91/V123/I125/V173 hydrophobic contacts. |
+| **2** | `OP-000000002` | `TBD` | A | morpholino-thiazole | −8.1 | −8.5 | 0.81 | R180 H-bond (3.0 Å) | Scaffold-distinct A-pocket hit; morpholine O accepts from R180; pose matches 5QSD. |
+| **3** | `OP-000000003` | `TBD` | F | benzyl-ether benzoic acid | −8.8* | −7.9 | 0.71 | Y88 (3.0 Å) · D177 proximity | F-pocket hit; matches K2P (5QSA) pharmacophore; benzyl ether + carboxylate. |
+| **4** | `OP-000000004` | `TBD` | F | compact bicyclic | −8.6* | −7.3 | 0.63 | Y88 (3.2 Å) · D177 proximity | Second F-pocket hit; G slot reallocated; scaffold-diverse from #3; MW < 400. |
 
 </div>
 
 <div class="small">
 
-*Pocket F Boltz ΔG is inflated by burial + induced-fit and is used as pose-only signal, not absolute score.
+*Pocket F Boltz ΔG is inflated by burial + induced-fit, so it's treated as a pose-only signal rather than an absolute score.
 
 All 4 satisfy: Chordoma physchem (LogP ≤ 6, HBD ≤ 6, HBA ≤ 12, MW ≤ 600), max Tanimoto to Naar set < 0.6, and 4 distinct Bemis–Murcko scaffolds.
 
@@ -352,15 +355,15 @@ All 4 satisfy: Chordoma physchem (LogP ≤ 6, HBD ≤ 6, HBA ≤ 12, MW ≤ 600)
 - Mean fractional rank of positives: **0.208** (median 0.124)
 
 **Label choice: pKD > 5, filter 3–5 gray zone.**
-Try1 (no filter, top-quartile): holdout AUROC 0.48 (random).
+Try1 (no filter, top-quartile): holdout AUROC 0.48 (~random).
 Try2 (filter gray zone): +0.06 to +0.12 OOF AUROC across variants.
-Try4 (ablated FP × features): **maccs+pocket+physchem won** — only variant where non-FP features materially contribute (86% MACCS, 6% pocket, 8% physchem importance).
+Try4 (ablated FP × features): maccs+pocket+physchem was the best variant, and the only one where non-FP features meaningfully contribute (86% MACCS, 6% pocket, 8% physchem importance).
 
 </div>
 
 <div>
 
-**Why PaCMAP folds:** Butina folds gave a deceptive 97% AUROC / 89% precision — scaffold leakage. PaCMAP breaks scaffold-level correlation and gives honest generalization estimates.
+**Why PaCMAP folds:** Butina folds gave an inflated 97% AUROC / 89% precision from scaffold leakage. PaCMAP folds break scaffold-level correlation and give a more honest generalization estimate.
 
 **Feature pipeline (183-dim):**
 | Slice | Source |
@@ -396,7 +399,7 @@ Ensemble probabilities used as **rank score only**, not calibrated P(binder).
 
 </div>
 
-**Per-fold variance is extreme** because positives are unevenly distributed across folds. Fold 0 (6 positives, AUROC 0.46) is a structurally distinct chemistry cluster the others don't sample well; the ensemble mean compensates. This is the honest cost of structure-aware splits on a small, batch-confounded dataset.
+**Per-fold variance is large** because positives are unevenly distributed across folds. Fold 0 (6 positives, AUROC 0.46) is a structurally distinct cluster the others don't sample well; the ensemble mean compensates. This is the cost of structure-aware splits on a small, batch-confounded dataset.
 
 ---
 
@@ -414,9 +417,9 @@ Ensemble probabilities used as **rank score only**, not calibrated P(binder).
 
 - Rank by `p_binder_ensemble_mean`
 - Butina-style clustering on Morgan FP
-- Kills redundant scaffolds *before* the expensive oracle runs
+- Redundant scaffolds removed *before* the expensive oracle runs
 
-Model score is cheap on 178k. Boltz is the bottleneck — wasting it on scaffold twins shrinks effective pocket coverage.
+Model scoring is fast on 178k compounds. Boltz is the bottleneck, so we avoid spending it on scaffold twins.
 
 </div>
 
@@ -427,13 +430,13 @@ Model score is cheap on 178k. Boltz is the bottleneck — wasting it on scaffold
 Ran Boltz on the clustered top-5000-per-pocket. Pose QC is strict — the site-localization filter alone rejects **~90–95%** of Boltz outputs.
 
 Post-QC survivors docked with Vina:
-- **Pocket A: <100**
-- **Pocket G: <100**
-- **Pocket F: <100**
+- **Pocket A: 10**
+- **Pocket F: 7**
+- **Pocket G: 0** (no compound placed at the intended site passed QC)
 
 Pocket D not run (pose tilted vs crystal).
 
-**Site-localization filter:** reject any compound whose Boltz pose places the ligand outside the intended pocket, even when induced-fit displacement is allowed. This is the dominant filter; catches off-site binders the affinity score alone would not flag.
+**Site-localization filter:** reject any compound whose Boltz pose places the ligand outside the intended pocket, allowing for induced-fit displacement. This is the dominant filter; it catches off-site placements that affinity score alone would not flag.
 
 </div>
 </div>
@@ -443,7 +446,7 @@ Pocket D not run (pose tilted vs crystal).
 - Pocket F scores inflated by burial + induced-fit; use pose, not absolute ΔG
 - Pocket A rewards hydrophobic burial; watch logP
 
-**Post-Boltz novelty filter:** drop any survivor with ECFP4 Tanimoto > 0.85 to any compound in the Zenodo SPR set. Keeps the submission novel vs prior screening; avoids paying Vina time on near-duplicates.
+**Post-Boltz novelty filter:** drop any survivor with ECFP4 Tanimoto > 0.85 to any compound in the Zenodo SPR set. Keeps the submission distinct from prior-screened chemistry and avoids spending Vina time on near-duplicates.
 
 ---
 
@@ -463,8 +466,8 @@ Pocket D not run (pose tilted vs crystal).
 | Pocket | Required contact |
 |---|---|
 | A | H-bond to **R180** |
-| G | Contact to **E48 or R54** |
 | F | Contact to **Y88** (±D177) |
+| ~~G~~ | **no QC survivors** — skipped |
 
 Fail the anchor check → drop regardless of Vina score.
 
@@ -472,18 +475,19 @@ Fail the anchor check → drop regardless of Vina score.
 
 <div>
 
-**Final 4 — convergent evidence required:**
+**Final 4 — each candidate must clear:**
 
 - ✅ XGBoost `p_binder_mean` ranks high
 - ✅ Fragment Tanimoto ≥ 0.35 in assigned pocket
-- ✅ Boltz pose resembles crystal fragment
+- ✅ Boltz pose matches the Newman co-crystal
 - ✅ Vina score within 1 kcal/mol of per-pocket best
 - ✅ Anchor contact present
 - ✅ Chordoma physchem satisfied
 - ✅ 4 distinct Bemis–Murcko scaffolds
 - ✅ Max Tanimoto to Naar set < 0.6
 
-**Slot allocation:** 2× A (most validated) · 1× G · 1× F (novel MoA)
+**Slot allocation (actual):** 2× A · 2× F · 0× G
+Planned 2·A + 1·G + 1·F; the G slot was reallocated to F after no G compounds passed Boltz site QC.
 
 </div>
 </div>
@@ -498,11 +502,11 @@ Fail the anchor check → drop regardless of Vina score.
 
 **Acknowledged limits**
 
-- SPR data has a ~0.65 AUROC ceiling for absolute prediction (batch effects, activity cliffs) → classifier is a ranker, not truth
-- Pocket F scores inflated (induced pocket) → pose-only signal
-- O0P dual-binder falsifies single-pocket routing; documented fix is multi-assignment
-- CheMeleon foundation model tried, dropped for time
-- Not chasing sub-µM; target is **credible, fragment-informed, pose-sensible** binders with convergent support
+- SPR data has a ~0.65 AUROC ceiling for absolute prediction (batch effects, activity cliffs) — classifier used as a ranker
+- Pocket F scores inflated by induced-fit; we rely on pose, not absolute ΔG
+- O0P dual-binder means single-pocket routing is incomplete; multi-assignment fix documented
+- CheMeleon foundation model tried and dropped for time
+- Goal is fragment-informed, pose-sensible binders with multiple lines of agreement — not a potency breakthrough
 
 </div>
 
@@ -517,7 +521,7 @@ Fail the anchor check → drop regardless of Vina score.
 | API neighbors (unique) | 51,560 |
 | **Combined library** | **?** |
 | Top per pocket (pre-cluster) | 5000 |
-| Boltz survivors (site-QC rejects ~90–95%) | <100 per pocket |
+| Boltz survivors (site-QC rejects ~90–95%) | A: 10 · F: 7 · G: 0 |
 | After Vina + anchor | final per-pocket shortlist |
 | **Submission** | **4** |
 
