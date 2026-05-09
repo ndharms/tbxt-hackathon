@@ -263,6 +263,11 @@ def train_one_novalid(
     controls the training length; when ``save_path`` is provided the final
     Lightning checkpoint is written there (compatible with
     ``MPNN.load_from_checkpoint``).
+
+    ``num_workers`` defaults to 0 because MPS + forked DataLoader workers
+    deadlocks silently on macOS (especially once heavy C extensions like
+    xgboost have been imported in the parent). Override to a positive int
+    only on Linux/CUDA.
     """
     torch.manual_seed(cfg.random_state)
 
@@ -527,7 +532,11 @@ def predict_proba(
     accelerator: str = "auto",
     num_workers: int = 0,
 ) -> np.ndarray:
-    """Return P(binder) for each SMILES. Shape (n,)."""
+    """Return P(binder) for each SMILES. Shape (n,).
+
+    ``num_workers=0`` by default for the same MPS-fork-hang reason as
+    :func:`train_one_novalid`.
+    """
     featurizer = featurizers.SimpleMoleculeMolGraphFeaturizer()
     # labels are ignored at inference; pass zeros of right shape
     placeholder = np.zeros(len(smiles), dtype=np.float32)

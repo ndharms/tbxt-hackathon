@@ -45,6 +45,27 @@ Usage
 
 from __future__ import annotations
 
+# Must come before any numpy / torch / xgboost / sklearn import. On macOS,
+# xgboost, torch, sklearn, and faiss each ship their own libomp.dylib, and
+# having multiple OpenMP runtimes live in one process deadlocks on the first
+# torch op that actually uses OMP (e.g. chemprop's trainer.fit). Setting both
+# vars keeps all runtimes single-threaded; at ~2k compounds the perf hit is
+# negligible and it removes the deadlock entirely.
+import os
+
+os.environ.setdefault("OMP_NUM_THREADS", "1")
+os.environ.setdefault("MKL_NUM_THREADS", "1")
+os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
+
+# If the process hangs again, SIGUSR1 dumps every thread's Python stack to
+# stderr. `kill -USR1 <pid>` from another terminal gives us a live traceback
+# without needing sudo py-spy.
+import faulthandler
+import signal
+
+faulthandler.enable()
+faulthandler.register(signal.SIGUSR1, chain=False)
+
 import argparse
 import json
 from dataclasses import dataclass
@@ -67,6 +88,7 @@ from tbxt_hackathon.deployment import (
 from tbxt_hackathon.xgb_baseline import (
     PHYSCHEM_COLUMNS,
     XGBConfig,
+    load_xgb_model,
     predict_proba_xgb,
     save_xgb_model,
     train_one_xgb_novalid,
@@ -84,9 +106,12 @@ XGB_N_ESTIMATORS = 61
 XGB_MAX_DEPTH = 6
 XGB_LEARNING_RATE = 0.05
 
-# CheMeleon hyperparameters: match try3 recipe
+# CheMeleon hyperparameters: match try3 recipe, with batch_size bumped from
+# 32 -> 128 to better saturate GPU/MPS; tiny-batch training on a ~2k dataset
+# was leaving the accelerator mostly idle. LR schedule effect is small at
+# this data scale but recipe is no longer bitwise-identical to try3.
 CHEMELEON_EPOCHS = 15
-CHEMELEON_BATCH_SIZE = 32
+CHEMELEON_BATCH_SIZE = 128
 CHEMELEON_HIDDEN_DIM = 256
 CHEMELEON_DROPOUT = 0.2
 CHEMELEON_LR = 1e-3
@@ -220,18 +245,26 @@ def _train_xgb_family(
         X_tr, y_tr = X[train_mask], y_all[train_mask]
         X_te, y_te = X[test_mask], y_all[test_mask]
 
-        logger.info(
-            f"[{family_name}] fold {held_out} held out: "
-            f"n_train={int(train_mask.sum())} (pos={int(y_tr.sum())}) "
-            f"n_test={int(test_mask.sum())} (pos={int(y_te.sum())})",
-        )
-        res = train_one_xgb_novalid(X_tr, y_tr, cfg)
-
         model_path = OUT_DIR / f"{model_prefix}_{held_out}.ubj"
-        save_xgb_model(res.booster, model_path)
+        if model_path.exists():
+            logger.info(
+                f"[{family_name}] fold {held_out}: reusing existing booster "
+                f"at {model_path.relative_to(ROOT)}",
+            )
+            booster = load_xgb_model(model_path)
+        else:
+            logger.info(
+                f"[{family_name}] fold {held_out} held out: "
+                f"n_train={int(train_mask.sum())} (pos={int(y_tr.sum())}) "
+                f"n_test={int(test_mask.sum())} (pos={int(y_te.sum())})",
+            )
+            res = train_one_xgb_novalid(X_tr, y_tr, cfg)
+            booster = res.booster
+            save_xgb_model(booster, model_path)
+
         artifact_paths.append(str(model_path.relative_to(ROOT)))
 
-        te_probs = predict_proba_xgb(res.booster, X_te)
+        te_probs = predict_proba_xgb(booster, X_te)
         oof[test_mask] = te_probs
 
         per_fold.append({
@@ -260,6 +293,8 @@ def train_chemeleon(
     """Train 6-fold LOFO CheMeleon transfer-learning ensemble."""
     # Deferred import: torch + chemprop cost ~10 s to import
     import torch
+
+    from chemprop.models import MPNN
 
     from tbxt_hackathon.chemeleon_transfer import (
         ClassifierConfig,
@@ -290,20 +325,27 @@ def train_chemeleon(
         te_smiles = [smiles_all[i] for i in test_idx]
         te_y = y_all[test_idx]
 
-        logger.info(
-            f"[chemeleon] fold {held_out} held out: "
-            f"n_train={len(tr_smiles)} (pos={int(tr_y.sum())}) "
-            f"n_test={len(te_smiles)} (pos={int(te_y.sum())}) "
-            f"epochs={cfg.max_epochs}",
-        )
         ckpt_path = OUT_DIR / f"chemeleon_fold_{held_out}.ckpt"
-        model = train_one_novalid(
-            train_smiles=tr_smiles,
-            train_labels=tr_y,
-            cfg=cfg,
-            save_path=ckpt_path,
-            accelerator=accelerator,
-        )
+        if ckpt_path.exists():
+            logger.info(
+                f"[chemeleon] fold {held_out}: reusing existing checkpoint "
+                f"at {ckpt_path.relative_to(ROOT)}",
+            )
+            model = MPNN.load_from_checkpoint(str(ckpt_path))
+        else:
+            logger.info(
+                f"[chemeleon] fold {held_out} held out: "
+                f"n_train={len(tr_smiles)} (pos={int(tr_y.sum())}) "
+                f"n_test={len(te_smiles)} (pos={int(te_y.sum())}) "
+                f"epochs={cfg.max_epochs}",
+            )
+            model = train_one_novalid(
+                train_smiles=tr_smiles,
+                train_labels=tr_y,
+                cfg=cfg,
+                save_path=ckpt_path,
+                accelerator=accelerator,
+            )
         te_probs = predict_proba(model, te_smiles, accelerator=accelerator)
         oof[test_idx] = te_probs
         artifact_paths.append(str(ckpt_path.relative_to(ROOT)))
