@@ -97,17 +97,12 @@ SGC TEP identifies 5 fragment pockets; we target **A, F, G**
 
 <div class="small">
 
-**Design constraints (Chordoma Fdn):**
-- MW ≤ 600, LogP ≤ 6, HBD ≤ 6, HBA ≤ 12
-- Non-covalent
-- No acid halides / aldehydes / diazo / imines
-- ≤ 2 fused rings
+**Why these pockets** (superposed all PDBs, scored contacts vs Newman signatures):
 
-**Boltz oracle reliability** (vs Newman co-crystals):
-- A: high (OK vs 5QS2)
-- G: medium (OK vs 5QS6)
-- F: medium, induced pocket (OK vs 5QSA)
-- D: low, tilted pose → **dropped**
+- **A (2 slots)** — most de-risked: 26 fragment hits, the only site Newman progressed to µM SPR (thiazole → 8A7N, 14–20 µM). Clean Boltz pose vs 5QS2.
+- **G (1 slot)** — 10 hits, largest G177D hotspot. Polar pocket near C-term helix; DNA-interface-adjacent angle distinct from A.
+- **F (1 slot, speculative)** — novel MoA: Y88 is the P300-interaction residue; pocket mediates KDM6 co-activator recruitment. Engages G177D variant directly. Induced, buried → oracle weaker, so lean on fragment similarity.
+- **D (dropped)** — Boltz pose tilted vs 5QS0 crystal, only 4–5 hits, DNA-competitive angle already covered by G.
 
 <span style="color:#666">Pocket IDs follow the SGC TEP datasheet.</span>
 
@@ -133,19 +128,21 @@ SGC TEP identifies 5 fragment pockets; we target **A, F, G**
 
 **What worked: reframe as a binary ranker.**
 
-- **Excluded mid-range KD** (pKD 3–5 gray zone) — unlearnable with ~0.9 pKD replicate noise; exclusion gave +0.06 to +0.12 OOF AUROC across variants
-- 12-booster XGBoost ensemble (2 fingerprints × 6 leave-one-fold-out splits) on the cleaned label
-- OOF AUROC 0.764 · AUPRC 0.337 (random 0.123) · top-30 precision 17/30 on try4 holdout
+- **Excluded mid-range KD** (pKD 3–5 gray zone) — unlearnable with ~0.9 pKD replicate noise
+- **PaCMAP + KMeans6 folds** — structurally-distinct splits, not scaffold-leaky Butina
+- **12-booster XGBoost ensemble** (2 fingerprints × 6 leave-one-fold-out) on the cleaned label
+
+Used as a **ranker**, not a calibrated probability. Metrics in appendix.
 
 </div>
 
 <div>
 
-![Per-positive fractional rank by model variant](classification-models-try4-rjg/holdout_rank_box.png)
+![PaCMAP + KMeans6 training folds](folds-pacmap-kmeans6/folds_pacmap.png)
 
 <div class="small">
 
-**Per-positive rank of 29 holdout positives**, across 9 fingerprint × feature-set variants on the filtered dataset. Lower is better; random = 0.5 (grey line). `maccs_fp_pocket_phys` is the tightest distribution — the recipe baked into deployment.
+**Training compounds in PaCMAP space**, colored by KMeans6 fold assignment. Structurally-distinct clusters — the ensemble trains 12 boosters leave-one-fold-out so every compound is scored by a booster that never saw it.
 
 </div>
 </div>
@@ -278,41 +275,70 @@ All 4 satisfy: Chordoma physchem (LogP ≤ 6, HBD ≤ 6, HBA ≤ 12, MW ≤ 600)
 
 ---
 
-## Appendix C — Stage 2 + 3 (model + pocket assignment)
+## Appendix C — Model metrics deep-dive
 
 <div class="two-col">
 
 <div>
 
-**XGBoost deployment ensemble**
-`src/tbxt_hackathon/deployment.py`
+**Deployment ensemble** — 12 XGB boosters (2 FP × 6 leave-one-fold-out splits on PaCMAP-KMeans6)
 
-- **12 boosters** = 2 fingerprint types × 6 leave-one-fold-out splits (PaCMAP-KMeans6)
-- Fingerprints: **MACCS** (167) + **Morgan ECFP4** (2048), each with pocket (8) + physchem (8)
-- 708 training compounds (12.3% positives)
-- Task: binary P(pKD > 5), used as **ranker**
+**Overall OOF (N=708, 12.3% prev):**
+- AUROC **0.764** · AUPRC **0.337** (random 0.123)
+- Top-30 precision on try4 holdout: **17/30** = 57% (random ~16%)
+- Mean fractional rank of positives: **0.208** (median 0.124)
 
-**Metrics (OOF):** AUROC 0.764 · AUPRC 0.337 (random 0.123)
-Selected from a fingerprint × feature-set ablation.
-On MACCS booster, importance: 86% MACCS, 6% pocket, 8% physchem.
+**Label choice: pKD > 5, filter 3–5 gray zone.**
+Try1 (no filter, top-quartile): holdout AUROC 0.48 (random).
+Try2 (filter gray zone): +0.06 to +0.12 OOF AUROC across variants.
+Try4 (ablated FP × features): **maccs+pocket+physchem won** — only variant where non-FP features materially contribute (86% MACCS, 6% pocket, 8% physchem importance).
+
+**Why PaCMAP folds:** Butina folds gave a deceptive 97% AUROC / 89% precision — scaffold leakage. PaCMAP breaks scaffold-level correlation and gives honest generalization estimates.
 
 </div>
 
 <div>
 
-**Pocket assignment**
-`src/tbxt_hackathon/pocket_assigner.py`
+![Per-positive fractional rank by model variant](classification-models-try4-rjg/holdout_rank_box.png)
 
-- Per pocket: max ECFP4 Tanimoto + substructure boolean
-- Combined = `1.0 + Tc` if substruct hit, else `Tc`
-- Assign to highest combined score
+<div class="small">
 
-**Soft spot:** O0P (5QSC) crystallizes at both G and F. Single-assignment forces a choice. 44/45 fragments self-route correctly; O0P is the miss. See `docs/pocket-mapper-soundness.md`.
+**Per-positive rank of 29 holdout positives** across 9 fingerprint × feature-set variants. Lower is better; random = 0.5 (grey line). `maccs_fp_pocket_phys` is the tightest distribution — the recipe baked into deployment.
 
-**CheMeleon foundation model:** tried as embedding + probe and embedding + ensemble; competitive but dropped under time pressure.
+Morgan sharpens the top of the ranking (8 positives at rank ≤ 9) but has a long right tail up to rank 131; MACCS+pocket+physchem has a wider leading span (10 positives in the top third) and no catastrophic misses. Ensembling both captures both behaviors.
+
+</div>
 
 </div>
 </div>
+
+---
+
+## Appendix C2 — Per-fold metrics
+
+<div class="tiny">
+
+**Morgan XGB booster family (per-fold OOF):**
+
+| Held-out fold | N train | N test | Pos train | Pos test | OOF AUROC | OOF AUPRC |
+|---|---:|---:|---:|---:|---:|---:|
+| 0 | 596 | 112 | 81 | 6 | 0.461 | 0.101 |
+| 1 | 563 | 145 | 48 | 39 | 0.648 | 0.389 |
+| 2 | 630 | 78 | 81 | 6 | 0.551 | 0.100 |
+| 3 | 522 | 186 | 58 | 29 | **0.800** | **0.410** |
+| 4 | 646 | 62 | 86 | 1 | 0.918* | 0.167 |
+| 5 | 583 | 125 | 81 | 6 | 0.637 | 0.282 |
+| **Overall** | — | 708 | — | 87 | **0.736** | **0.312** |
+
+<span class="small">*Fold 4 AUROC computed on 1 positive — uninterpretable in isolation. Fold 3 (29 positives) is the best-powered single-fold estimate.</span>
+
+</div>
+
+**Per-fold variance is extreme** because positives are unevenly distributed across folds. Fold 0 (6 positives, AUROC 0.46) is a structurally distinct chemistry cluster the others don't sample well; the ensemble mean compensates. This is the honest cost of structure-aware splits on a small, batch-confounded dataset.
+
+---
+
+## Appendix C3 — Pocket assignment details
 
 ---
 
