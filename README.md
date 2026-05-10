@@ -5,6 +5,11 @@ a T-box transcription factor and key dependency of chordoma.
 
 **Event:** May 9, 2026 -- Boston, Pillar VC. Hosted by muni in collaboration with Rowan and onepot.
 
+Got 3rd place! Compound performance TBD.
+
+This work was drafted and executed with a lot of AI assistance, and in order to get it done in the limited time window,
+review of the AI outputs was kept high level. There may be methodological or epistemic errors or inconsistencies.
+
 ## Goal
 
 Design and rank 4 non-covalent small-molecule ligands for the TBXT DNA-binding domain
