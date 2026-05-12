@@ -98,7 +98,7 @@
     },
     "chemeleon": {
       "epochs": 15,
-      "batch_size": 32,
+      "batch_size": 128,
       "hidden_dim": 256,
       "dropout": 0.2,
       "learning_rate": 0.001,
@@ -106,6 +106,80 @@
     }
   },
   "per_family": {
+    "deploy_xgb": {
+      "overall_oof_auroc": 0.7638680659670165,
+      "overall_oof_auprc": 0.33680817416234565,
+      "per_fold": [
+        {
+          "held_out_fold": 0,
+          "n_train": 596,
+          "n_test": 112,
+          "pos_train": 81,
+          "pos_test": 6,
+          "oof_auroc": 0.47327044025157233,
+          "oof_auprc": 0.08789018599775877,
+          "model_path": "data/deployment-model/xgb_deploy_fold_0.ubj"
+        },
+        {
+          "held_out_fold": 1,
+          "n_train": 563,
+          "n_test": 145,
+          "pos_train": 48,
+          "pos_test": 39,
+          "oof_auroc": 0.6947266569908079,
+          "oof_auprc": 0.4567100129432536,
+          "model_path": "data/deployment-model/xgb_deploy_fold_1.ubj"
+        },
+        {
+          "held_out_fold": 2,
+          "n_train": 630,
+          "n_test": 78,
+          "pos_train": 81,
+          "pos_test": 6,
+          "oof_auroc": 0.7152777777777778,
+          "oof_auprc": 0.1724748889291618,
+          "model_path": "data/deployment-model/xgb_deploy_fold_2.ubj"
+        },
+        {
+          "held_out_fold": 3,
+          "n_train": 522,
+          "n_test": 186,
+          "pos_train": 58,
+          "pos_test": 29,
+          "oof_auroc": 0.8094662859652976,
+          "oof_auprc": 0.4674829924956841,
+          "model_path": "data/deployment-model/xgb_deploy_fold_3.ubj"
+        },
+        {
+          "held_out_fold": 4,
+          "n_train": 646,
+          "n_test": 62,
+          "pos_train": 86,
+          "pos_test": 1,
+          "oof_auroc": 1.0,
+          "oof_auprc": 1.0,
+          "model_path": "data/deployment-model/xgb_deploy_fold_4.ubj"
+        },
+        {
+          "held_out_fold": 5,
+          "n_train": 583,
+          "n_test": 125,
+          "pos_train": 81,
+          "pos_test": 6,
+          "oof_auroc": 0.6624649859943977,
+          "oof_auprc": 0.1582303760269862,
+          "model_path": "data/deployment-model/xgb_deploy_fold_5.ubj"
+        }
+      ],
+      "artifact_paths": [
+        "data/deployment-model/xgb_deploy_fold_0.ubj",
+        "data/deployment-model/xgb_deploy_fold_1.ubj",
+        "data/deployment-model/xgb_deploy_fold_2.ubj",
+        "data/deployment-model/xgb_deploy_fold_3.ubj",
+        "data/deployment-model/xgb_deploy_fold_4.ubj",
+        "data/deployment-model/xgb_deploy_fold_5.ubj"
+      ]
+    },
     "morgan_xgb": {
       "overall_oof_auroc": 0.7362614988801895,
       "overall_oof_auprc": 0.3117147113770911,
@@ -179,10 +253,84 @@
         "data/deployment-model/xgb_morgan_fold_4.ubj",
         "data/deployment-model/xgb_morgan_fold_5.ubj"
       ]
+    },
+    "chemeleon": {
+      "overall_oof_auroc": 0.5623854739297018,
+      "overall_oof_auprc": 0.1360649278705844,
+      "per_fold": [
+        {
+          "held_out_fold": 0,
+          "n_train": 596,
+          "n_test": 112,
+          "pos_train": 81,
+          "pos_test": 6,
+          "oof_auroc": 0.6855345911949686,
+          "oof_auprc": 0.0902667001457324,
+          "ckpt_path": "data/deployment-model/chemeleon_fold_0.ckpt"
+        },
+        {
+          "held_out_fold": 1,
+          "n_train": 563,
+          "n_test": 145,
+          "pos_train": 48,
+          "pos_test": 39,
+          "oof_auroc": 0.5336236090953073,
+          "oof_auprc": 0.280304236527369,
+          "ckpt_path": "data/deployment-model/chemeleon_fold_1.ckpt"
+        },
+        {
+          "held_out_fold": 2,
+          "n_train": 630,
+          "n_test": 78,
+          "pos_train": 81,
+          "pos_test": 6,
+          "oof_auroc": 0.4074074074074074,
+          "oof_auprc": 0.08667491148826134,
+          "ckpt_path": "data/deployment-model/chemeleon_fold_2.ckpt"
+        },
+        {
+          "held_out_fold": 3,
+          "n_train": 522,
+          "n_test": 186,
+          "pos_train": 58,
+          "pos_test": 29,
+          "oof_auroc": 0.49879200527124967,
+          "oof_auprc": 0.16347305985342925,
+          "ckpt_path": "data/deployment-model/chemeleon_fold_3.ckpt"
+        },
+        {
+          "held_out_fold": 4,
+          "n_train": 646,
+          "n_test": 62,
+          "pos_train": 86,
+          "pos_test": 1,
+          "oof_auroc": 0.360655737704918,
+          "oof_auprc": 0.025,
+          "ckpt_path": "data/deployment-model/chemeleon_fold_4.ckpt"
+        },
+        {
+          "held_out_fold": 5,
+          "n_train": 583,
+          "n_test": 125,
+          "pos_train": 81,
+          "pos_test": 6,
+          "oof_auroc": 0.6554621848739496,
+          "oof_auprc": 0.1090923367744342,
+          "ckpt_path": "data/deployment-model/chemeleon_fold_5.ckpt"
+        }
+      ],
+      "artifact_paths": [
+        "data/deployment-model/chemeleon_fold_0.ckpt",
+        "data/deployment-model/chemeleon_fold_1.ckpt",
+        "data/deployment-model/chemeleon_fold_2.ckpt",
+        "data/deployment-model/chemeleon_fold_3.ckpt",
+        "data/deployment-model/chemeleon_fold_4.ckpt",
+        "data/deployment-model/chemeleon_fold_5.ckpt"
+      ]
     }
   },
   "ensemble_overall": {
-    "overall_oof_auroc": 0.7362614988801895,
-    "overall_oof_auprc": 0.3117147113770911
+    "overall_oof_auroc": 0.7501712106909508,
+    "overall_oof_auprc": 0.30762320780892854
   }
 }

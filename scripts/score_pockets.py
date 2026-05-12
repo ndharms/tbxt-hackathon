@@ -17,8 +17,9 @@ from loguru import logger
 
 from tbxt_hackathon.pocket_assigner import PocketAssigner
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
-DEFAULT_FRAGMENT_CSV = Path("data/structures/sgc_fragments.csv")
+DEFAULT_FRAGMENT_CSV = REPO_ROOT / "data" / "structures" / "sgc_fragments.csv"
 DEFAULT_THRESHOLD = 0.35
 
 

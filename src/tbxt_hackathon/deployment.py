@@ -94,7 +94,7 @@ CHEMELEON_SPEC: dict[str, Any] = {
     "input": "canonical_smiles",
     "encoder": "chemprop BondMessagePassing with CheMeleon pretrained weights",
     "head": "BinaryClassificationFFN (2 hidden layers, hidden_dim=256, dropout=0.2)",
-    "training": "no-val, 15 epochs, batch_size=32, lr=1e-3",
+    "training": "no-val, 15 epochs, batch_size=128, lr=1e-3",
 }
 
 ENSEMBLE_SPEC: dict[str, Any] = {

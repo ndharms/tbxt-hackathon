@@ -25,6 +25,7 @@ from Bio.PDB.Residue import Residue
 from Bio.PDB.Structure import Structure
 from loguru import logger
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Newman pocket signature residues (residue number -> pocket)
 # These are the key residues that define each pocket
@@ -50,7 +51,7 @@ UNRESOLVED_ENTRIES = [
     ("5QRM", "crystal_contact"),
 ]
 
-PDB_CACHE_DIR = Path("data/structures/pdb_cache")
+PDB_CACHE_DIR = REPO_ROOT / "data" / "structures" / "pdb_cache"
 
 
 def download_pdb(pdb_id: str) -> Path:

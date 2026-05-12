@@ -182,6 +182,15 @@ wheels = [
 ]
 
 [[package]]
+name = "apple-smi"
+version = "0.1.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/61/8a882e8e0519d8eb3fb540204f7d88929465c28c2a5e2aac30868a674fa6/apple_smi-0.1.4.tar.gz", hash = "sha256:e6a787cd5e705241fc4fa8847ad6198c41e559ceac51a5b6c8bc9dacf55583ee", size = 26453, upload-time = "2026-03-13T02:26:02.418Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/39/d1/69df3d8895d75204c77cff2f80b70918175b68aa93451de6083176452f46/apple_smi-0.1.4-py3-none-any.whl", hash = "sha256:4e854523435e38fa622ce59c6395a2a158d43842a83211aec1044e86cb3b3e38", size = 26774, upload-time = "2026-03-13T02:26:01.143Z" },
+]
+
+[[package]]
 name = "appnope"
 version = "0.1.4"
 source = { registry = "https://pypi.org/simple" }
@@ -3957,6 +3966,7 @@ name = "tbxt-hackathon"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "apple-smi" },
     { name = "biopython" },
     { name = "chemprop" },
     { name = "dataframely" },
@@ -3995,6 +4005,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "apple-smi", specifier = ">=0.1.4" },
     { name = "biopython", specifier = ">=1.84" },
     { name = "chemprop", specifier = ">=2.2.0" },
     { name = "dataframely", specifier = ">=1.2" },

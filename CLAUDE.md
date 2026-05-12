@@ -13,14 +13,15 @@ sourced from onepot's 3.4B compound library.
 
 ## Strategy
 Ligand-based virtual screening as primary approach. Structure-based validation (docking)
-may be added later as a separate task.
+used for final compound triage.
 
 ## Data
 - `data/zenodo/tbxt_spr_merged.csv` — 2143 SPR binding affinity records (pKD) from 14 experimental
   batches. See `notebooks/01-data-prep.ipynb` for schema, cleaning pipeline, and QC visuals.
-- `data/zenodo/uploads/` — raw password-protected Excel files from HD Biosciences (password: HDB)
+- `data/zenodo/uploads/` — raw password-protected Excel files from HD Biosciences
+  (password is in the Zenodo README accompanying Newman et al. 2025)
 - `data/Naar_SMILES.xlsx` — 135 previously screened compound SMILES
-- `data/structures/` — PDB files (empty; for future docking work)
+- `data/structures/` — Pocket PDB files (A, C, D) and SGC fragment data (`sgc_fragments.csv`)
 
 ## Setup
 ```bash
@@ -38,4 +39,4 @@ uv run jupyter lab
 - SMILES are never silently normalized; preserve exactly as received from source
 - pKD = -log10(KD_M); higher = more potent
 - All data operations should include shape assertions
-- Use RDKit for all cheminformatics; pandas for tabular data
+- Use RDKit for all cheminformatics; pandas or polars for tabular data

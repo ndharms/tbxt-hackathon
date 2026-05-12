@@ -23,6 +23,7 @@ from typing import Dict, List
 import requests
 from loguru import logger
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # All fragment PDB entries from the TEP datasheet (Table 2) plus Newman 2025
 # progressed compounds, grouped by our working pocket label.
@@ -225,7 +226,7 @@ def main() -> None:
 
     df = pl.DataFrame(fragments)
 
-    output_path = Path("data/structures/sgc_fragments.csv")
+    output_path = REPO_ROOT / "data" / "structures" / "sgc_fragments.csv"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df.write_csv(output_path)
 

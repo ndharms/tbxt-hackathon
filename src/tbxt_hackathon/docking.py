@@ -30,6 +30,8 @@ import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import AllChem, Descriptors
 
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+
 
 # ---------------------------------------------------------------------------
 # Data classes
@@ -124,16 +126,17 @@ class DockingReport:
             )
         return "\n".join(lines)
 
-    def show_3d(self, pose_idx: int | None = None, width: int = 900, height: int = 600):
+    def show_3d(self, pose_idx: int | None = None, width: int = 900, height: int = 600, show_labels: bool = True):
         """Interactive py3Dmol visualization in Jupyter.
 
         Args:
             pose_idx: Index into self.poses to display. None = best pose.
+            show_labels: Show residue labels for interacting residues.
         """
         pose = self.poses[pose_idx] if pose_idx is not None else self.best_pose
         return _render_pose_3d(
             self.receptor_pdb, pose.pose_pdb, pose.pose_sdf, pose.interactions,
-            self.box_center, width, height,
+            self.box_center, width, height, show_labels=show_labels,
         )
 
     def show_all_poses(self, width: int = 900, height: int = 600):
@@ -178,6 +181,7 @@ def _render_pose_3d(
     box_center: tuple[float, float, float],
     width: int = 900,
     height: int = 600,
+    show_labels: bool = True,
 ):
     import py3Dmol
 
@@ -207,16 +211,17 @@ def _render_pose_3d(
             {"model": 0, "resn": res_name, "resi": res_seq},
             {"stick": {"colorscheme": "whiteCarbon", "radius": 0.12}},
         )
-        view.addResLabels(
-            {"model": 0, "resn": res_name, "resi": res_seq, "atom": "CA"},
-            {
-                "fontSize": 11,
-                "fontColor": "white",
-                "backgroundColor": "0x333333",
-                "backgroundOpacity": 0.7,
-                "showBackground": True,
-            },
-        )
+        if show_labels:
+            view.addResLabels(
+                {"model": 0, "resn": res_name, "resi": res_seq, "atom": "CA"},
+                {
+                    "fontSize": 11,
+                    "fontColor": "white",
+                    "backgroundColor": "0x333333",
+                    "backgroundOpacity": 0.7,
+                    "showBackground": True,
+                },
+            )
 
     color_map = {
         "hbond": "0xFFD700",
@@ -245,20 +250,21 @@ def _render_pose_3d(
             }
         )
 
-        view.addLabel(
-            f"{ix.type} {ix.distance:.1f}A",
-            {
-                "position": {
-                    "x": (p_xyz[0] + l_xyz[0]) / 2,
-                    "y": (p_xyz[1] + l_xyz[1]) / 2,
-                    "z": (p_xyz[2] + l_xyz[2]) / 2,
+        if show_labels:
+            view.addLabel(
+                f"{ix.type} {ix.distance:.1f}A",
+                {
+                    "position": {
+                        "x": (p_xyz[0] + l_xyz[0]) / 2,
+                        "y": (p_xyz[1] + l_xyz[1]) / 2,
+                        "z": (p_xyz[2] + l_xyz[2]) / 2,
+                    },
+                    "fontSize": 10,
+                    "backgroundColor": "black",
+                    "fontColor": "white",
+                    "backgroundOpacity": 0.6,
                 },
-                "fontSize": 10,
-                "backgroundColor": "black",
-                "fontColor": "white",
-                "backgroundOpacity": 0.6,
-            },
-        )
+            )
 
     cx, cy, cz = box_center
     view.zoomTo({"center": {"x": cx, "y": cy, "z": cz}})
@@ -1145,15 +1151,15 @@ def dock_batch(
 # ---------------------------------------------------------------------------
 
 _DEFAULT_POCKET_PDBS = {
-    "A": "data/structures/TGT_TBXT_A_pocket.pdb",
-    "C": "data/structures/TGT_TBXT_C_pocket.pdb",
-    "D": "data/structures/TGT_TBXT_D_pocket.pdb",
+    "A": _REPO_ROOT / "data" / "structures" / "TGT_TBXT_A_pocket.pdb",
+    "C": _REPO_ROOT / "data" / "structures" / "TGT_TBXT_C_pocket.pdb",
+    "D": _REPO_ROOT / "data" / "structures" / "TGT_TBXT_D_pocket.pdb",
 }
 
 
 def dock_screen(
     smiles_list: list[str],
-    fragment_csv: str | Path = "data/structures/sgc_fragments.csv",
+    fragment_csv: str | Path = _REPO_ROOT / "data" / "structures" / "sgc_fragments.csv",
     pocket_pdbs: dict[str, str | Path] | None = None,
     n_conformers: int = 3,
     exhaustiveness: int = 3,
@@ -1284,19 +1290,6 @@ def dock_screen(
             else:
                 tc_vals.append(0.0)
                 sub_vals.append(False)
-
-        df_sorted_by_input = df.sort_values("smiles").reset_index(drop=True)
-        items_sorted = sorted(items, key=lambda x: x[1])
-        tc_sorted = [
-            round(scores.get(pocket_label).tanimoto, 4)
-            if scores.get(pocket_label) else 0.0
-            for _, smi, scores in items_sorted
-        ]
-        sub_sorted = [
-            scores.get(pocket_label).substruct
-            if scores.get(pocket_label) else False
-            for _, smi, scores in items_sorted
-        ]
 
         smi_to_meta = {}
         for _, smi, scores in items:

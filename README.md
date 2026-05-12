@@ -36,17 +36,24 @@ See `notebooks/01-data-prep.ipynb` for the full cleaning pipeline and QC visuals
 
 ## Modeling
 
-The deployment model is a 6-booster XGBoost ensemble trained on MACCS keys
-+ pocket similarity + physchem descriptors (183 features). See
+The deployment model is a rank-normalized ensemble of three model families:
+
+1. **MACCS XGB**: 6-fold XGBoost on MACCS keys + pocket similarity + physchem (183 features)
+2. **Morgan XGB**: 6-fold XGBoost on Morgan ECFP4 (2048) + physchem (2056 features)
+3. **CheMeleon**: 6-fold CheMeleon transfer-learning MPNN
+
+Each model's predicted probabilities are rank-normalized to [0, 1] and averaged,
+giving each model an equal vote. See
 [`docs/deployment-model.md`](docs/deployment-model.md) for the full recipe,
 metrics, and inference instructions.
 
 Quick inference:
 
 ```python
-from tbxt_hackathon.deployment import DeploymentModel
-model = DeploymentModel.load()
-probs = model.predict(["CCOC(=O)c1ccc(O)cc1", "Nc1ccc(Cl)cc1"])
+from tbxt_hackathon.deployment import EnsembleModel
+model = EnsembleModel.load()
+out = model.predict(["CCOC(=O)c1ccc(O)cc1", "Nc1ccc(Cl)cc1"])
+out["ensemble_rank_score"]
 ```
 
 Or from the CLI:
@@ -122,5 +129,5 @@ src/tbxt_hackathon/         Shared Python utilities
   fingerprints.py            Morgan / RDKit-path / MACCS builders
   xgb_baseline.py            XGBoost training helpers (class + reg)
   pocket_assigner.py         SGC fragment similarity scoring
-  chemeleon_transfer.py      CheMeleon encoder wrapper (not used in deployment)
+  chemeleon_transfer.py      CheMeleon encoder wrapper (used in ensemble deployment)
 ```

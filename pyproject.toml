@@ -2,6 +2,12 @@
 name = "tbxt-hackathon"
 version = "0.1.0"
 description = "TBXT hit identification hackathon — ligand-based virtual screening with structure-based validation"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "Nate Harms", email = "nate@harmsinformatics.org"},
+    {name = "Raymond Gasper"},
+]
 requires-python = ">=3.11"
 dependencies = [
     # cheminformatics
@@ -36,12 +42,12 @@ dependencies = [
     "typeguard>=4",
     "joblib>=1.4",
     "statsmodels>=0.14",
-    "loguru>=0.7.0",
     "duckdb",
     "pyarrow",
     "optuna>=4.8.0",
     "umap-learn>=0.5.12",
     "onepot>=0.1.6",
+    "apple-smi>=0.1.4",
 ]
 
 [dependency-groups]

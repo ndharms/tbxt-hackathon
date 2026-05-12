@@ -2,27 +2,19 @@
 
 Run:
     uv add duckdb              # one-time
-    uv run python scripts/probe_onepot.py
+    uv run python scripts/probe_onepot.py <presigned-url>
 
 Writes findings to docs/onepot_schema_notes.md so they can be referenced
 when the focused-VL pipeline is built. Does not download the file.
 """
 from __future__ import annotations
 
-import os
+import argparse
 import sys
-import textwrap
 import time
 from pathlib import Path
 
 import duckdb
-
-URL = (
-    "https://onepot-clients.s3.amazonaws.com/shared/v1p1/core_v1p1.csv.gz"
-    "?AWSAccessKeyId=AKIA2XKLIHG76EKRIH7S"
-    "&Signature=s%2Boj0hJH%2ByKeqeIvf6kPZ2x1uqU%3D"
-    "&Expires=1778693935"
-)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 NOTES = REPO_ROOT / "docs" / "onepot_schema_notes.md"
@@ -33,6 +25,11 @@ def heading(s: str) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(description="Probe OnePot CORE catalog schema via DuckDB")
+    parser.add_argument("url", help="Presigned S3 URL for core_v1p1.csv.gz")
+    args = parser.parse_args()
+    URL = args.url
+
     con = duckdb.connect()
     con.execute("INSTALL httpfs; LOAD httpfs;")
     con.execute("SET enable_progress_bar=true;")
