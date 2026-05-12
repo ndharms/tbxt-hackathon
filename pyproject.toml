@@ -3,7 +3,7 @@ name = "tbxt-hackathon"
 version = "0.1.0"
 description = "TBXT hit identification hackathon — ligand-based virtual screening with structure-based validation"
 readme = "README.md"
-license = "MIT"
+license = "Apache-2.0"
 authors = [
     {name = "Nate Harms", email = "nate@harmsinformatics.org"},
     {name = "Raymond Gasper"},
